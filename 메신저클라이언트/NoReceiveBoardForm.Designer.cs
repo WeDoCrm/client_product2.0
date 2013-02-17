@@ -148,7 +148,7 @@
             this.panel_memo.Controls.Add(this.label_memo);
             this.panel_memo.Controls.Add(this.pictureBox2);
             this.panel_memo.Enabled = false;
-            this.panel_memo.Location = new System.Drawing.Point(1, 30);
+            this.panel_memo.Location = new System.Drawing.Point(1, 29);
             this.panel_memo.Name = "panel_memo";
             this.panel_memo.Size = new System.Drawing.Size(135, 28);
             this.panel_memo.TabIndex = 2;
@@ -190,7 +190,7 @@
             this.panel_file.Controls.Add(this.label_file);
             this.panel_file.Controls.Add(this.pictureBox3);
             this.panel_file.Enabled = false;
-            this.panel_file.Location = new System.Drawing.Point(1, 58);
+            this.panel_file.Location = new System.Drawing.Point(1, 56);
             this.panel_file.Name = "panel_file";
             this.panel_file.Size = new System.Drawing.Size(135, 28);
             this.panel_file.TabIndex = 3;
@@ -232,7 +232,7 @@
             this.panel_trans.Controls.Add(this.label_trans);
             this.panel_trans.Controls.Add(this.pictureBox4);
             this.panel_trans.Enabled = false;
-            this.panel_trans.Location = new System.Drawing.Point(1, 86);
+            this.panel_trans.Location = new System.Drawing.Point(1, 83);
             this.panel_trans.Name = "panel_trans";
             this.panel_trans.Size = new System.Drawing.Size(135, 28);
             this.panel_trans.TabIndex = 4;

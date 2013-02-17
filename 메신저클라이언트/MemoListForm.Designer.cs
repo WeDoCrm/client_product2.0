@@ -88,7 +88,7 @@
             // btn_cancel
             // 
             this.btn_cancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btn_cancel.Location = new System.Drawing.Point(86, 291);
+            this.btn_cancel.Location = new System.Drawing.Point(85, 291);
             this.btn_cancel.Name = "btn_cancel";
             this.btn_cancel.Size = new System.Drawing.Size(68, 25);
             this.btn_cancel.TabIndex = 13;
@@ -99,7 +99,7 @@
             // btn_all
             // 
             this.btn_all.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btn_all.Location = new System.Drawing.Point(12, 291);
+            this.btn_all.Location = new System.Drawing.Point(11, 291);
             this.btn_all.Name = "btn_all";
             this.btn_all.Size = new System.Drawing.Size(68, 25);
             this.btn_all.TabIndex = 14;

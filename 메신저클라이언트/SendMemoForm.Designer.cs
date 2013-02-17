@@ -43,18 +43,19 @@ namespace Client
             this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.textBox1.ImeMode = System.Windows.Forms.ImeMode.Hangul;
-            this.textBox1.Location = new System.Drawing.Point(1, 27);
+            this.textBox1.Location = new System.Drawing.Point(2, 28);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(344, 154);
+            this.textBox1.Size = new System.Drawing.Size(342, 152);
             this.textBox1.TabIndex = 0;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // receiverIDs
             // 
             this.receiverIDs.Enabled = false;
-            this.receiverIDs.Location = new System.Drawing.Point(243, 24);
+            this.receiverIDs.Location = new System.Drawing.Point(348, 44);
             this.receiverIDs.Multiline = true;
             this.receiverIDs.Name = "receiverIDs";
             this.receiverIDs.Size = new System.Drawing.Size(99, 176);
@@ -64,7 +65,7 @@ namespace Client
             // formkey
             // 
             this.formkey.AutoSize = true;
-            this.formkey.Location = new System.Drawing.Point(10, 244);
+            this.formkey.Location = new System.Drawing.Point(11, 245);
             this.formkey.Name = "formkey";
             this.formkey.Size = new System.Drawing.Size(0, 12);
             this.formkey.TabIndex = 5;
@@ -75,10 +76,10 @@ namespace Client
             this.txtbox_receiver.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.txtbox_receiver.BackColor = System.Drawing.SystemColors.Window;
-            this.txtbox_receiver.Location = new System.Drawing.Point(84, 3);
+            this.txtbox_receiver.Location = new System.Drawing.Point(82, 4);
             this.txtbox_receiver.Name = "txtbox_receiver";
             this.txtbox_receiver.ReadOnly = true;
-            this.txtbox_receiver.Size = new System.Drawing.Size(260, 21);
+            this.txtbox_receiver.Size = new System.Drawing.Size(256, 21);
             this.txtbox_receiver.TabIndex = 7;
             this.txtbox_receiver.MouseLeave += new System.EventHandler(this.txtbox_receiver_MouseLeave);
             this.txtbox_receiver.MouseEnter += new System.EventHandler(this.txtbox_receiver_MouseEnter);
@@ -86,7 +87,7 @@ namespace Client
             // BtnSend
             // 
             this.BtnSend.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.BtnSend.Location = new System.Drawing.Point(134, 187);
+            this.BtnSend.Location = new System.Drawing.Point(134, 186);
             this.BtnSend.Name = "BtnSend";
             this.BtnSend.Size = new System.Drawing.Size(75, 23);
             this.BtnSend.TabIndex = 14;
@@ -116,6 +117,7 @@ namespace Client
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(361, 254);
             this.Name = "SendMemoForm";
+            this.Padding = new System.Windows.Forms.Padding(1);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "쪽지 보내기";
             this.SizeChanged += new System.EventHandler(this.SendMemoForm_SizeChanged);

@@ -37,6 +37,7 @@
             this.ClientSize = new System.Drawing.Size(284, 262);
             this.Name = "FlashWindowForm";
             this.Deactivate += new System.EventHandler(this.FlashWindowForm_Deactivate);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FlashWindowForm_FormClosing);
             this.ResumeLayout(false);
 
         }

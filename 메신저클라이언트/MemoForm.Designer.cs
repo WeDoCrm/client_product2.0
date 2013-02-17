@@ -30,41 +30,29 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MemoForm));
-            this.MemoRe = new System.Windows.Forms.TextBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.CutCtrlCToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.CopyCtrlCToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.PasteCtrlCToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.SelectAllCtrlCToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.panel1 = new System.Windows.Forms.Panel();
             this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.CutCtrlCToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.CopyCtrlCToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.PasteCtrlCToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.SelectAllCtrlCToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.splitContainer1 = new Elegant.Ui.SplitContainer();
-            this.richTextBoxMemo = new System.Windows.Forms.RichTextBox();
+            this.panel1 = new System.Windows.Forms.Panel();
             this.richTextBoxReply = new System.Windows.Forms.RichTextBox();
             this.Memobtn = new System.Windows.Forms.Button();
+            this.MemoRe = new System.Windows.Forms.TextBox();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.richTextBoxMemo = new System.Windows.Forms.RichTextBox();
             this.contextMenuStrip1.SuspendLayout();
-            this.panel1.SuspendLayout();
             this.contextMenuStrip2.SuspendLayout();
-            this.splitContainer1.Panel1.SuspendLayout();
-            this.splitContainer1.Panel2.SuspendLayout();
-            this.splitContainer1.SuspendLayout();
+            this.panel1.SuspendLayout();
+            this.panel2.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // MemoRe
-            // 
-            this.MemoRe.ImeMode = System.Windows.Forms.ImeMode.Hangul;
-            this.MemoRe.Location = new System.Drawing.Point(152, 31);
-            this.MemoRe.Multiline = true;
-            this.MemoRe.Name = "MemoRe";
-            this.MemoRe.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.MemoRe.Size = new System.Drawing.Size(265, 64);
-            this.MemoRe.TabIndex = 0;
             // 
             // contextMenuStrip1
             // 
@@ -125,14 +113,6 @@
             this.SelectAllCtrlCToolStripMenuItem1.Text = "모두 선택(A)";
             this.SelectAllCtrlCToolStripMenuItem1.Click += new System.EventHandler(this.SelectAllCtrlCToolStripMenuItem1_Click);
             // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.MemoRe);
-            this.panel1.Location = new System.Drawing.Point(241, 178);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(334, 39);
-            this.panel1.TabIndex = 8;
-            // 
             // contextMenuStrip2
             // 
             this.contextMenuStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -189,93 +169,102 @@
             this.SelectAllCtrlCToolStripMenuItem2.Text = "모두 선택(A)";
             this.SelectAllCtrlCToolStripMenuItem2.Click += new System.EventHandler(this.SelectAllCtrlCToolStripMenuItem2_Click);
             // 
-            // splitContainer1
+            // panel1
             // 
-            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Id = "f7389220-eda9-4af8-aa30-1373d178b64a";
-            this.splitContainer1.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer1.Name = "splitContainer1";
-            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.panel1.Controls.Add(this.richTextBoxReply);
+            this.panel1.Controls.Add(this.Memobtn);
+            this.panel1.Controls.Add(this.MemoRe);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel1.Location = new System.Drawing.Point(1, 253);
+            this.panel1.Name = "panel1";
+            this.panel1.Padding = new System.Windows.Forms.Padding(0, 1, 0, 0);
+            this.panel1.Size = new System.Drawing.Size(332, 39);
+            this.panel1.TabIndex = 12;
             // 
-            // splitContainer1.Panel1
+            // richTextBoxReply
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.richTextBoxMemo);
+            this.richTextBoxReply.ContextMenuStrip = this.contextMenuStrip2;
+            this.richTextBoxReply.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.richTextBoxReply.Location = new System.Drawing.Point(0, 1);
+            this.richTextBoxReply.Name = "richTextBoxReply";
+            this.richTextBoxReply.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
+            this.richTextBoxReply.Size = new System.Drawing.Size(270, 38);
+            this.richTextBoxReply.TabIndex = 13;
+            this.richTextBoxReply.Text = "";
+            this.richTextBoxReply.KeyDown += new System.Windows.Forms.KeyEventHandler(this.richTextBoxReply_KeyDown);
             // 
-            // splitContainer1.Panel2
+            // Memobtn
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.richTextBoxReply);
-            this.splitContainer1.Panel2.Controls.Add(this.Memobtn);
-            this.splitContainer1.Panel2MinSize = 0;
-            this.splitContainer1.Size = new System.Drawing.Size(334, 293);
-            this.splitContainer1.SplitterDistance = 239;
-            this.splitContainer1.TabIndex = 9;
+            this.Memobtn.Dock = System.Windows.Forms.DockStyle.Right;
+            this.Memobtn.Location = new System.Drawing.Point(270, 1);
+            this.Memobtn.Name = "Memobtn";
+            this.Memobtn.Size = new System.Drawing.Size(62, 38);
+            this.Memobtn.TabIndex = 12;
+            this.Memobtn.Text = "보내기";
+            this.Memobtn.UseVisualStyleBackColor = true;
+            this.Memobtn.Click += new System.EventHandler(this.Memobtn_Click);
+            // 
+            // MemoRe
+            // 
+            this.MemoRe.ImeMode = System.Windows.Forms.ImeMode.Hangul;
+            this.MemoRe.Location = new System.Drawing.Point(152, 31);
+            this.MemoRe.Multiline = true;
+            this.MemoRe.Name = "MemoRe";
+            this.MemoRe.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.MemoRe.Size = new System.Drawing.Size(265, 64);
+            this.MemoRe.TabIndex = 0;
+            // 
+            // panel2
+            // 
+            this.panel2.Controls.Add(this.richTextBoxMemo);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(1, 1);
+            this.panel2.Name = "panel2";
+            this.panel2.Padding = new System.Windows.Forms.Padding(0, 0, 0, 1);
+            this.panel2.Size = new System.Drawing.Size(332, 252);
+            this.panel2.TabIndex = 13;
             // 
             // richTextBoxMemo
             // 
             this.richTextBoxMemo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            this.richTextBoxMemo.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.richTextBoxMemo.ContextMenuStrip = this.contextMenuStrip1;
             this.richTextBoxMemo.Dock = System.Windows.Forms.DockStyle.Fill;
             this.richTextBoxMemo.Location = new System.Drawing.Point(0, 0);
             this.richTextBoxMemo.Name = "richTextBoxMemo";
             this.richTextBoxMemo.ReadOnly = true;
             this.richTextBoxMemo.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this.richTextBoxMemo.Size = new System.Drawing.Size(334, 239);
-            this.richTextBoxMemo.TabIndex = 8;
+            this.richTextBoxMemo.Size = new System.Drawing.Size(332, 251);
+            this.richTextBoxMemo.TabIndex = 11;
             this.richTextBoxMemo.Text = "";
-            // 
-            // richTextBoxReply
-            // 
-            this.richTextBoxReply.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.richTextBoxReply.ContextMenuStrip = this.contextMenuStrip2;
-            this.richTextBoxReply.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.richTextBoxReply.Location = new System.Drawing.Point(0, 0);
-            this.richTextBoxReply.Name = "richTextBoxReply";
-            this.richTextBoxReply.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this.richTextBoxReply.Size = new System.Drawing.Size(272, 50);
-            this.richTextBoxReply.TabIndex = 11;
-            this.richTextBoxReply.Text = "";
-            // 
-            // Memobtn
-            // 
-            this.Memobtn.Dock = System.Windows.Forms.DockStyle.Right;
-            this.Memobtn.Location = new System.Drawing.Point(272, 0);
-            this.Memobtn.Name = "Memobtn";
-            this.Memobtn.Size = new System.Drawing.Size(62, 50);
-            this.Memobtn.TabIndex = 10;
-            this.Memobtn.Text = "보내기";
-            this.Memobtn.UseVisualStyleBackColor = true;
+            this.richTextBoxMemo.KeyDown += new System.Windows.Forms.KeyEventHandler(this.richTextBoxMemo_KeyDown);
             // 
             // MemoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(334, 293);
-            this.Controls.Add(this.splitContainer1);
+            this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(350, 193);
             this.Name = "MemoForm";
+            this.Padding = new System.Windows.Forms.Padding(1);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "쪽지쓰기";
             this.Activated += new System.EventHandler(this.MemoForm_Activated);
             this.contextMenuStrip1.ResumeLayout(false);
+            this.contextMenuStrip2.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
-            this.contextMenuStrip2.ResumeLayout(false);
-            this.splitContainer1.Panel1.ResumeLayout(false);
-            this.splitContainer1.Panel2.ResumeLayout(false);
-            this.splitContainer1.ResumeLayout(false);
+            this.panel2.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        public System.Windows.Forms.TextBox MemoRe;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem CopyCtrlCToolStripMenuItem1;
-        private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.ToolStripMenuItem CutCtrlCToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem PasteCtrlCToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem SelectAllCtrlCToolStripMenuItem1;
@@ -286,9 +275,11 @@
         private System.Windows.Forms.ToolStripMenuItem SelectAllCtrlCToolStripMenuItem2;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private Elegant.Ui.SplitContainer splitContainer1;
-        private System.Windows.Forms.RichTextBox richTextBoxMemo;
+        private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.RichTextBox richTextBoxReply;
         public System.Windows.Forms.Button Memobtn;
+        public System.Windows.Forms.TextBox MemoRe;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.RichTextBox richTextBoxMemo;
     }
 }

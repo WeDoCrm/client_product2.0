@@ -204,7 +204,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(89, 15);
             this.label1.TabIndex = 0;
-            this.label1.Text = "현재 접속중";
+            this.label1.Text = "추가 대상 목록";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // panel2
@@ -222,7 +222,7 @@
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(89, 15);
             this.label2.TabIndex = 19;
-            this.label2.Text = "현재 참여중";
+            this.label2.Text = "추가된 목록";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // AddMemberForm

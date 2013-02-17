@@ -21,10 +21,10 @@ namespace Client
 
         public void SetNoticeInfo(string title, string content, string writerId, string writerName, string tagKey)
         {
-            richTextBoxContent.Text = content;
-            label_noticetitle.Tag = writerId;
-            label_notice_sender.Text = writerName;
-            label_noticetitle.Text = title;
+            RichTextBoxContent.Text = content;
+            TextBoxTitle.Tag = writerId;
+            LabelNoticeSender.Text = writerName;
+            TextBoxTitle.Text = title;
             this.Tag = tagKey;
         }
 
@@ -53,13 +53,29 @@ namespace Client
 
         private void CopyCtrlCToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            richTextBoxContent.Copy();
+            RichTextBoxContent.Copy();
         }
 
         private void SelectAllCtrlCToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            richTextBoxContent.SelectAll();
+            RichTextBoxContent.SelectAll();
         }
 
+        public string GetSenderId() {
+            return LabelNoticeSender.Tag.ToString();
+        }
+
+        private void RichTextBoxContent_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Modifiers == Keys.ControlKey) {
+                switch (e.KeyData) {
+                    case Keys.C:
+                        RichTextBoxContent.Copy();
+                        break;
+                    case Keys.A:
+                        RichTextBoxContent.SelectAll();
+                        break;
+                }
+            }
+        }
     }
 }

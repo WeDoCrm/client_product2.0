@@ -137,6 +137,10 @@ namespace Client
             this.MnShowHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.weDo정보ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aquaSkin1 = new SkinSoft.AquaSkin.AquaSkin(this.components);
+            this.mouseMenuC = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.StripMn_cchat = new System.Windows.Forms.ToolStripMenuItem();
+            this.StripMn_cmemo = new System.Windows.Forms.ToolStripMenuItem();
+            this.StripMn_cfile = new System.Windows.Forms.ToolStripMenuItem();
             this.mouseMenuG.SuspendLayout();
             this.mouseMenuN.SuspendLayout();
             this.default_panal.SuspendLayout();
@@ -160,6 +164,7 @@ namespace Client
             this.TM_help_sub.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.aquaSkin1)).BeginInit();
+            this.mouseMenuC.SuspendLayout();
             this.SuspendLayout();
             // 
             // mouseMenuG
@@ -683,11 +688,12 @@ namespace Client
             this.pictureBox2.BackColor = System.Drawing.Color.Transparent;
             this.pictureBox2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pictureBox2.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.pictureBox2.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.pictureBox2.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox2.Image")));
-            this.pictureBox2.Location = new System.Drawing.Point(12, 419);
+            this.pictureBox2.Location = new System.Drawing.Point(0, 425);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(282, 82);
-            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox2.Size = new System.Drawing.Size(298, 82);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.pictureBox2.TabIndex = 13;
             this.pictureBox2.TabStop = false;
             this.pictureBox2.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox2_MouseClick);
@@ -1130,6 +1136,36 @@ namespace Client
             this.aquaSkin1.ShadowStyle = SkinSoft.AquaSkin.ShadowStyle.Small;
             this.aquaSkin1.ToolStripStyle = SkinSoft.AquaSkin.ToolStripRenderStyle.Mixed;
             // 
+            // mouseMenuC
+            // 
+            this.mouseMenuC.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.StripMn_cchat,
+            this.StripMn_cmemo,
+            this.StripMn_cfile});
+            this.mouseMenuC.Name = "mouseMenuG";
+            this.mouseMenuC.Size = new System.Drawing.Size(135, 70);
+            // 
+            // StripMn_cchat
+            // 
+            this.StripMn_cchat.Enabled = false;
+            this.StripMn_cchat.Name = "StripMn_cchat";
+            this.StripMn_cchat.Size = new System.Drawing.Size(152, 22);
+            this.StripMn_cchat.Text = "대화하기";
+            // 
+            // StripMn_cmemo
+            // 
+            this.StripMn_cmemo.Name = "StripMn_cmemo";
+            this.StripMn_cmemo.Size = new System.Drawing.Size(152, 22);
+            this.StripMn_cmemo.Text = "쪽지보내기";
+            this.StripMn_cmemo.Click += new System.EventHandler(this.StripMn_memo_Click);
+            // 
+            // StripMn_cfile
+            // 
+            this.StripMn_cfile.Enabled = false;
+            this.StripMn_cfile.Name = "StripMn_cfile";
+            this.StripMn_cfile.Size = new System.Drawing.Size(152, 22);
+            this.StripMn_cfile.Text = "파일보내기";
+            // 
             // Client_Form
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(6, 14);
@@ -1178,6 +1214,7 @@ namespace Client
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.aquaSkin1)).EndInit();
+            this.mouseMenuC.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1269,6 +1306,10 @@ namespace Client
         private WebBrowser webBrowser1;
         private ToolStripMenuItem StripMn_busy;
         private OpenFileDialog openFileDialog;
+        private ContextMenuStrip mouseMenuC;
+        private ToolStripMenuItem StripMn_cchat;
+        private ToolStripMenuItem StripMn_cmemo;
+        private ToolStripMenuItem StripMn_cfile;
  
     }
 }

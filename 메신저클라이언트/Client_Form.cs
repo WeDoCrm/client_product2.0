@@ -196,7 +196,7 @@ namespace Client
         //private delegate int onFlashWindow(ChatForm form);
         private delegate Hashtable GetMemberDelegate(Hashtable treeSource, string teamName);
         private delegate Hashtable GetAllMemberDelegate();
-        private delegate void DelChatterDelegate(string id);
+        private delegate void DelChatterDelegate(string id, string name);
         private delegate string[] GetChattersDelegate();
         private delegate void SetChatterStatusDelegate(string userId, string userName, string status);
         private delegate void AddChatterDelegate(string id, string name);
@@ -2232,8 +2232,7 @@ namespace Client
                                 }
 
                                 string newFormKey = ChatUtils.GetFormKeyWithMultiUsersAdded(tempFormKey, myid, tempMsg[2]);
-                                form.SetFormKey(newFormKey);
-
+                                SetChatFormKeyUpdate(form, newFormKey, tempFormKey);
                             }
                             else
                             {
@@ -2256,11 +2255,10 @@ namespace Client
                             {
                                 //노드삭제
                                 DelChatterDelegate delchatter = new DelChatterDelegate(form.DeleteChatter);
-                                Invoke(delchatter, new object[] { tempMsg[2] });
+                                Invoke(delchatter, new object[] { tempMsg[2], GetUserName(tempMsg[2]) });
                                 //formkey 변경
                                 string newFormKey = ChatUtils.GetFormKeyWithUserQuit(tempFormKey, myid, tempMsg[2]);
-                                form.SetFormKey(newFormKey);
-
+                                SetChatFormKeyUpdate(form, newFormKey, tempFormKey);
                             }
                             else
                             {
@@ -2278,11 +2276,10 @@ namespace Client
                             {
                                 //노드삭제
                                 DelChatterDelegate delchatter = new DelChatterDelegate(form.DeleteChatter);
-                                Invoke(delchatter, new object[] { tempMsg[2] });
+                                Invoke(delchatter, new object[] { tempMsg[2], GetUserName(tempMsg[2]) });
                                 //formkey 변경
                                 string newFormKey = ChatUtils.GetFormKeyWithUserQuit(tempFormKey, myid, tempMsg[2]);
-                                form.SetFormKey(newFormKey);
-
+                                SetChatFormKeyUpdate(form, newFormKey, tempFormKey);
                             }
                             else
                             {
@@ -2421,33 +2418,42 @@ namespace Client
                     #region //일반 메신저기능
                     case "i":  //추가 로그인 상담원일 경우  형태 : i|id|소속팀명|ip|이름
 
-                        try
-                        {
-                            //로그인 리스트 테이블에 추가
+                        try {
+                            //1. 로그인 리스트 테이블에 추가
                             IPEndPoint addiep = new IPEndPoint(IPAddress.Parse(tempMsg[3]), 8883);
                             InList[tempMsg[1]] = addiep;
-                            //memTree 뷰에 로그인 사용자 상태 변경
+
+                            //2. memTree 뷰에 로그인 사용자 상태 변경
                             ChangeStat change = new ChangeStat(ChangeMemStat);
                             Invoke(change, new object[] { tempMsg[1], "online" });
                             TeamInfoList[tempMsg[1]] = tempMsg[2];
                             
-                        }
-                        catch (Exception e)
-                        {
+                            //3. 각 채팅창 key변경 및 채팅창 노드/상태변경
+                            ChangeStat logInChatter = new ChangeStat(SetUserStatusInChatForm);
+                            Invoke(logInChatter, new object[] { tempMsg[1], MsgrUserStatus.ONLINE });
+
+                            //4. 로그인 했음 메시지 창 띄움
+                            // 추후 구현
+                        } catch (Exception e) {
                             logWrite(e.ToString());
                         }
                         break;
 
                     case "o":  //로그아웃 상담원이 발생할 경우  o|id|소속
-                        {
-                            FormTextCtrlDelegate logoutchatter = new FormTextCtrlDelegate(LogoutChatter);
-                            Invoke(logoutchatter, tempMsg[1]);
-                            lock (this)
-                            {
+                        try {
+                            //1. 로그인 리스트 테이블에서 삭제
+                            lock (this) {
                                 InList[tempMsg[1]] = null;
                             }
-                            ChangeStat logout = new ChangeStat(ChangeLogout);
+                            //2. memTree 뷰에 로그아웃 사용자 상태 변경
+                            ChangeStat logout = new ChangeStat(ChangeMemStat);
                             Invoke(logout, new object[] { tempMsg[1], tempMsg[2] });
+
+                            //3. 각 채팅창 key변경 및 채팅창 노드/상태변경
+                            ChangeStat logOutChatter = new ChangeStat(SetUserStatusInChatForm);
+                            Invoke(logOutChatter, new object[] {tempMsg[1], MsgrUserStatus.LOGOUT});
+                        } catch (Exception e) {
+                            logWrite(e.ToString());
                         }
                         break;
 
@@ -2509,18 +2515,19 @@ namespace Client
                         {
                             if (!tempMsg[1].Equals(this.myid))
                             {
+                                //1. 트리상태변경 
                                 ChangeStat presenceupdate = new ChangeStat(PresenceUpdate);
                                 Invoke(presenceupdate, new object[] { tempMsg[1], tempMsg[2] });
+                                //2. 로그인리스트 테이블에 추가
                                 IPEndPoint tempiep = new IPEndPoint(IPAddress.Parse(tempMsg[3]), listenport);
                                 lock (InList)
                                 {
                                     InList[tempMsg[1]] = tempiep;
                                 }
-                                if (tempMsg[2] == MsgrUserStatus.LOGOUT)
-                                {
-                                    FormTextCtrlDelegate logoutchatter = new FormTextCtrlDelegate(LogoutChatter);
-                                    Invoke(logoutchatter, tempMsg[1]);
-                                }
+                                //3. 채팅창 상태변경
+                                //   각 채팅창 key변경 및 채팅창 노드/상태변경
+                                ChangeStat changeStat = new ChangeStat(SetUserStatusInChatForm);
+                                Invoke(changeStat, new object[] { tempMsg[1], tempMsg[2] });
                             }
                         }
                         break;
@@ -3496,83 +3503,77 @@ namespace Client
                     logWrite(statid + "의 상태값" + presence + " 로 변경");
                 }
 
-                if (ChatFormList.Count != 0) {
-
-                    foreach (DictionaryEntry de in ChatFormList) {
-                        if (de.Value != null) {
-                            try {
-                                ChatForm form = (ChatForm)de.Value;
-                                SetChatterStatusDelegate setChatterStatus = new SetChatterStatusDelegate(form.SetChatterStatus);
-                                Invoke(setChatterStatus, new object[] { statid, GetUserName(statid), presence });
-                                //form.SetChatterStatus(statid, GetUserName(statid), presence);
-                            } catch (Exception e) {
-                                logWrite("form.Dispose() 에러 : " + e.ToString());
-                            }
-                        }
-                    }
-                }
             } catch (Exception e) {
                 logWrite(id + " 상태값 변경 오류 : " + e.ToString());
             }
         }
 
+        /// <summary>
+        /// 1. 채팅창에 user상태 변경
+        /// 2. login: user가 속한 채팅창의 user정보 활성화.
+        /// 3. logout: 반대로 처리
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="status"></param>
+        private void SetChatFormKeyUpdate(ChatForm chatForm, string newFormKey, string oldFormKey) {
+            lock (ChatFormList) {
+                chatForm.SetFormKey(newFormKey);
+                ChatFormList.Remove((string)oldFormKey);
+                ChatFormList[(string)newFormKey] = chatForm;
+
+                chatForm.ReBox.Focus();
+            }
+        }
 
         /// <summary>
         /// 공지사항 리스트 폼 생성
         /// </summary>
         /// <param name="tempMsg"></param>
-        private void ShowNotice(string[] tempMsg)  //n|메시지 | 발신자id | mode | noticetime |seqnum| 제목
-        {
-            try
-            {
-                if (tempMsg.Length > 6)
-                {
+        private void ShowNotice(string[] tempMsg) { //n|메시지 | 발신자id | mode | noticetime |seqnum| 제목
+        
+            try {
+                if (tempMsg.Length > 6) {
+
                     string nname = GetUserName(tempMsg[2]);
                     Notice nform = new Notice();
-                    if (tempMsg[0].Equals("r"))  //부재중 공지사항 리스트에서 수신
-                    {
+                    if (tempMsg[0].Equals("r")) { //부재중 공지사항 리스트에서 수신
                         //nform.btn_confirm.MouseClick += new MouseEventHandler(btn_confirm_Click);
-                    }
-                    else //실시간 공지사항 수신시 확인결과 전송 처리
-                    {
+                    } else {//실시간 공지사항 수신시 확인결과 전송 처리
                         nform.btn_confirm.MouseClick += new MouseEventHandler(sendReadNotice);
                     }
                     nform.SetNoticeInfo(/*title*/tempMsg[6], /*content*/tempMsg[1], /*writerId*/ tempMsg[2], /*writerName*/ nname, /*tagKey*/ tempMsg[4]);
                     nform.Show();
                     nform.Activate();
-                    if (!tempMsg[0].Equals("r"))
-                    {
+                    if (!tempMsg[0].Equals("r")) {
                         nform.DoFlashWindow();
                     }
-                }
-                else
-                {
+                } else {
                     logWrite("메시지 배열 크기 작음 : " + tempMsg.Length.ToString());
                 }
-            }
-            catch (Exception exception)
-            {
+            } catch (Exception exception) {
                 logWrite(exception.ToString());
             }
         }
 
-        private void ShowNoticeDirect(string[] tempMsg)  //n|메시지 | 발신자id | mode | noticetime |제목
-        {
-            try
-            {
-                if (tempMsg.Length > 5)
-                {
+        private void ShowNoticeDirect(string[] tempMsg) { //n|메시지 | 발신자id | mode | noticetime |제목
+        
+            try {
+            
+                if (tempMsg.Length > 5) {
+                
                     string nname = GetUserName(tempMsg[2]);
                     Notice nform = new Notice();
-                    if (tempMsg[0].Equals("n"))//실시간 공지사항 수신시 확인결과 전송 처리
-                    {
+                    
+                    if (tempMsg[0].Equals("n")) { //실시간 공지사항 수신시 확인결과 전송 처리
+                    
                         nform.NoticeAlreadyRead += sendReadNotice;
                     }
+                    
                     nform.SetNoticeInfo(/*title*/tempMsg[5], /*content*/tempMsg[1], /*writerId*/ tempMsg[2], /*writerName*/ nname, /*tagKey*/ tempMsg[4]);
                     nform.Show();
                     nform.Activate();
-                    if (!tempMsg[0].Equals("r"))
-                    {
+                    
+                    if (!tempMsg[0].Equals("r")) {
                         nform.DoFlashWindow();
                     }
                 }
@@ -3605,7 +3606,7 @@ namespace Client
                     noticeid = noticeFrm.Tag.ToString();
                 }
                 logWrite("noticeid : " + noticeid);
-                senderid = noticeFrm.label_noticetitle.Tag.ToString();
+                senderid = noticeFrm.GetSenderId();
                 SendMsg("21|" + this.myid + "|" + noticeid + "|" + senderid, server);
             }
             catch (Exception exception)
@@ -4696,10 +4697,25 @@ namespace Client
         }
 
         /// <summary>
-        /// 채팅중 상대방이 로그아웃한 경우 알림
+        /// ___________1:1창__________다자창_______
+        /// 
+        /// on   | key(out->in)      key변경없음
+        ///        노드상태변경      노드상태변경
+        /// 
+        /// out  | key(in->out)      quit처리(**비정상종료로 quit없이 아웃됨)
+        ///        노드상태변경
+        ///        메시지display
+        /// 
+        /// busy | key변경없음       key변경없음
+        ///        노드상태변경      노드상태변경
+        /// 
+        /// away |     동일
+        /// 
+        /// dnd  |     동일
+        /// 
         /// </summary>
         /// <param name="id"></param>
-        public void LogoutChatter(string id)
+        public void SetUserStatusInChatForm(string id, string status)
         {
             try {
 
@@ -4710,20 +4726,49 @@ namespace Client
                     if (!key.Contains(id))
                         continue;
                     ChatForm form = (ChatForm)ChatFormList[key];
-                    form.SetChatterLogOut(id, GetUserName(id));
-                    string newFormKey = ChatUtils.GetFormKeyWithUserLogOut(key, myid, id);
-                    form.SetFormKey(newFormKey);
-                    ChatFormList.Remove(key);
-                    ChatFormList[newFormKey] = form;
-                }
-                //foreach (DictionaryEntry de in ChatFormList) {
-                //    if (de.Value != null) {
-                //        ChatForm form = (ChatForm)de.Value;
-                //        form.SetChatterLogOut(id, GetUserName(id));
-                //        //string 
-                //    }
-                //}
 
+                    switch (status) {
+                        case MsgrUserStatus.ONLINE:
+                            //1:1채팅인 경우만
+                            if (form.HasSingleChatter()) {
+                                //1.키변경
+                                string newFormKey = ChatUtils.GetFormKeyWithUserAdded(key, myid, id);
+                                SetChatFormKeyUpdate(form, newFormKey, key);
+                                //2.노드상태변경
+                                //3.메시지디스플레이
+                                form.SetChatterLogIn(id, GetUserName(id));
+                            } else {//다자창
+                                //1.키변경없음
+                                //2.노드상태변경
+                                form.SetChatterLogIn(id, GetUserName(id));
+                            }
+                            break;
+                        case MsgrUserStatus.LOGOUT:
+                            //1:1채팅인 경우만
+                            if (form.HasSingleChatter()) {
+                                //1.키변경
+                                string newFormKey = ChatUtils.GetFormKeyWithUserLogOut(key, myid, id);
+                                SetChatFormKeyUpdate(form, newFormKey, key);
+                                //2.노드상태변경
+                                //3.메시지디스플레이
+                                form.SetChatterLogOut(id, GetUserName(id));
+                            } else {//다자창
+                                //quit처리
+                                //  1.키변경
+                                string newFormKey = ChatUtils.GetFormKeyWithUserQuit(key, myid, id);
+                                SetChatFormKeyUpdate(form, newFormKey, key);
+                                //  2. 노드삭제
+                                form.DeleteChatter(id, GetUserName(id));
+                            }
+                            break;
+                        case MsgrUserStatus.BUSY:
+                        case MsgrUserStatus.AWAY:
+                        case MsgrUserStatus.DND:
+                            //노드상태변경
+                            form.SetChatterStatus(id, GetUserName(id), status);
+                            break;
+                    }
+                }
             } catch (Exception exception) {
                 logWrite(exception.ToString());
             }
@@ -4898,52 +4943,65 @@ namespace Client
 
         private void memTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            try
-            {
+            try {
+                
                 TreeView view = (TreeView)sender;
                 view.SelectedNode = e.Node;
-                if (e.Button == MouseButtons.Right)
-                {
-                    if (e.Node.GetNodeCount(false) != 0)
-                    {
+
+                if (e.Button == MouseButtons.Right) {
+
+                    if (e.Node.GetNodeCount(false) != 0) {
                         mouseMenuG.Show(view, e.Location, ToolStripDropDownDirection.BelowRight);
+                    } else {
+                        if (InList.ContainsKey(e.Node.Tag)) { //접속한 경우
+                            mouseMenuN.Show(view, e.Location, ToolStripDropDownDirection.BelowRight);
+                        } else {
+                            mouseMenuC.Show(view, e.Location, ToolStripDropDownDirection.BelowRight);
+                        }
                     }
-                    else mouseMenuN.Show(view, e.Location, ToolStripDropDownDirection.BelowRight);
                 }
             }
-            catch (Exception exception)
-            {
+            catch (Exception exception) {
                 logWrite(exception.ToString());
             }
         }
 
 
-        private void memTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
-        {
-            try
-            {
-                if (memTree.SelectedNode.GetNodeCount(true) == 0) //팀원 노드 선택
-                {
-                    logWrite(e.Node.Tag.ToString());
-                    if (InList.ContainsKey(e.Node.Tag.ToString()) && InList[e.Node.Tag.ToString()] != null)
-                    {
-                        MakeChatForm(e.Node.Text, e.Node.Tag.ToString());
-                    }
-                    else  //대화가능한 상대방이 없을경우
-                    {
-                        DialogResult result = MessageBox.Show(this, "대화할 상대방이 대화가 불가능한 상태입니다.\r\n 대신 쪽지를 보내시겠습니까?", "알림", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-                        if (result == DialogResult.OK)
-                        {
+        private void memTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e) {
+            try {
+                if (memTree.SelectedNode.GetNodeCount(true) == 0) { //팀원 노드 선택
+                    
+                    string userId = e.Node.Tag.ToString();
+                    string userName = e.Node.Text;
+                  
+                    logWrite(userId);
+                    
+                    if (InList.ContainsKey(userId) && InList[userId] != null) {
+
+                        ChatForm chatForm = ChatUtils.FindChatForm(ChatFormList, userId);
+                        //존재하는 대화창이 없는 경우 생성
+                        if (chatForm == null) {
+                            MakeChatForm(userName, userId);
+                        } else {
+                            chatForm.WindowState = FormWindowState.Normal;
+                            chatForm.Show();
+                            chatForm.ReBox.Focus();
+                        }
+                    } else { //대화가능한 상대방이 없을경우
+                        DialogResult result =
+                            MessageBox.Show(this, "대화할 상대방이 대화가 불가능한 상태입니다.\r\n 대신 쪽지를 보내시겠습니까?", 
+                                            "알림", 
+                                            MessageBoxButtons.OKCancel, 
+                                            MessageBoxIcon.Information);
+                        
+                        if (result == DialogResult.OK) {
                             Hashtable MemoReceiver = new Hashtable();
-                            string chatterid = (String)e.Node.Tag;
-                            MemoReceiver[e.Node.Text] = chatterid;
+                            MemoReceiver[userName] = userId;
                             MakeSendMemo(MemoReceiver);
                         }
                     }
                 }
-            }
-            catch (Exception exception)
-            {
+            } catch (Exception exception) {
                 logWrite(exception.ToString());
             }
         }
@@ -5071,34 +5129,34 @@ namespace Client
             }
         }
 
-        /// <summary>
-        /// 로그아웃 사용자 memTree 상태 변경
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="tname"></param>
-        private void ChangeLogout(string id, string tname)
-        {
-            try
-            {
-                TreeNode[] memNode = memTree.Nodes.Find(id, true);
-                if (memNode != null && memNode.Length > 0)
-                {
-                    memNode[0].ImageIndex = 0;
-                    memNode[0].SelectedImageIndex = 0;
-                    memNode[0].Text = GetUserName(id);
-                    memNode[0].ForeColor = Color.Gray;
-                    logWrite(id + "의 상태값 변경");
-                }
-                else
-                {
-                    logWrite("ChangeLogout Error : " + id + " 노드를 찾을 수 없음");
-                }
-            }
-            catch (Exception e)
-            {
-                logWrite(id + " 상태값 변경 오류 : " + e.ToString());
-            }
-        }
+        ///// <summary>
+        ///// 로그아웃 사용자 memTree 상태 변경
+        ///// </summary>
+        ///// <param name="id"></param>
+        ///// <param name="tname"></param>
+        //private void SetUserLogoutInMemTree(string id, string tname)
+        //{
+        //    try
+        //    {
+        //        TreeNode[] memNode = memTree.Nodes.Find(id, true);
+        //        if (memNode != null && memNode.Length > 0)
+        //        {
+        //            memNode[0].ImageIndex = 0;
+        //            memNode[0].SelectedImageIndex = 0;
+        //            memNode[0].Text = GetUserName(id);
+        //            memNode[0].ForeColor = Color.Gray;
+        //            logWrite(id + "의 상태값 변경");
+        //        }
+        //        else
+        //        {
+        //            logWrite("ChangeLogout Error : " + id + " 노드를 찾을 수 없음");
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        logWrite(id + " 상태값 변경 오류 : " + e.ToString());
+        //    }
+        //}
 
         /// <summary>
         /// 새로운 대화메시지 수신시 대화창 생성
@@ -5108,7 +5166,7 @@ namespace Client
         {
             try
             {
-                ChatForm chatForm = new ChatForm();
+                ChatForm chatForm = new ChatForm(myid);
                 chatForm.SetCustomFont(custom_color, custom_font);
                 chatForm.Formkey.Text = ChatUtils.GetFormKey(ar[1], myid);
                 string[] tempidar = ar[2].Split('/');
@@ -5130,10 +5188,10 @@ namespace Client
                 chatForm.FormClosing += new FormClosingEventHandler(chatForm_FormClosing);
                 chatForm.txtbox_exam.ForeColorChanged += new EventHandler(txtbox_exam_Changed);
                 chatForm.txtbox_exam.FontChanged += new EventHandler(txtbox_exam_Changed);
-                //chatForm.WindowState = FormWindowState.Minimized;
+                chatForm.WindowState = FormWindowState.Minimized;
                 ChatFormList[chatForm.Formkey.Text] = chatForm;
                 chatForm.Show();
-
+                chatForm.ReBox.Focus();
                 chatForm.PostUserMessage(ar[3]/*user name*/, ar[4]/*user msg*/);
             }
             catch (Exception exception)
@@ -5179,11 +5237,10 @@ namespace Client
         /// </summary>
         /// <param name="chatter"></param>
         /// <param name="ids"></param>
-        private void MakeChatForm(string chatter, string ids)
-        {
-            try
-            {
-                ChatForm chatForm = new ChatForm();
+        private void MakeChatForm(string chatter, string ids) {
+        
+            try {
+                ChatForm chatForm = new ChatForm(myid);
                 //chatForm.Text = chatter;
 
                 chatForm.SetCustomFont(custom_color, custom_font);
@@ -5204,14 +5261,11 @@ namespace Client
                 chatForm.Show();
                 chatForm.ReBox.Focus();
 
-                if (ids != null)
-                {
+                if (ids != null) {
                     string name = GetUserName(ids);
                     chatForm.SetChatterOnFormOpening(ids, name);//대화창에 참가자 노드 추가(key=id, text=name)
                 }
-            }
-            catch (Exception exception)
-            {
+            } catch (Exception exception) {
                 logWrite(exception.ToString());
             }
         }
@@ -5300,7 +5354,7 @@ namespace Client
         {
             try
             {
-                ChatForm chatForm = new ChatForm();
+                ChatForm chatForm = new ChatForm(myid);
                 //chatForm.Text = chattersName;
 
                 chatForm.SetCustomFont(custom_color, custom_font);
@@ -5370,8 +5424,8 @@ namespace Client
         private void MakeAddChatterForm(string formkey)  {
 
             try {
-            
-                AddMemberForm addform = new AddMemberForm();
+                //로그인사용자만 선택
+                AddMemberForm addform = new AddMemberForm(true, formkey);
                 addform.BtnConfirm.MouseClick += new MouseEventHandler(BtnConfirmAddMember_Click);
                 addform.radiobt_g.Click += new EventHandler(radiobt_g_Click);
                 addform.radiobt_con.Click += new EventHandler(radiobt_con_Click);
@@ -5380,36 +5434,9 @@ namespace Client
                 addform.CurrInListBox.MouseDoubleClick += new MouseEventHandler(CurrInListBox_MouseDoubleClick);
 
                 ChatForm form = (ChatForm)ChatFormList[formkey];
+                addform.SetAddListBox(form.ChattersTree.Nodes);
+                addform.SetCurrInListBox(InList, MemberInfoList);
 
-                if (form.ChattersTree.Nodes.Count != 0) {
-
-                    TreeNodeCollection col = form.ChattersTree.Nodes;
-                    
-                    foreach (TreeNode node in col) {
-
-                        if (node.Text.Length != 0) {
-                            addform.AddListBox.Items.Add(node.Text);
-                        }
-                    }
-                }
-
-                if (InList.Count != 0) {
-                    
-                    foreach (DictionaryEntry de in InList) {
-                        
-                        if (de.Value != null)  {
-
-                            string name = GetUserName(de.Key.ToString());
-                            string item = name + "(" + de.Key.ToString() + ")";
-
-                            if (!addform.AddListBox.Items.Contains(item)) {
-                                addform.CurrInListBox.Items.Add(item);
-                            }
-                        }
-                    }
-                }
-
-                addform.formkey.Text = formkey;
                 addform.radiobt_con.Checked = true;
                 addform.ShowDialog(form);
             }
@@ -5557,7 +5584,11 @@ namespace Client
                 box.Items.Clear();
                 foreach (DictionaryEntry de in treesource)
                 {
-                    box.Items.Add(de.Key.ToString());
+                    if (de.Key.ToString() == "") {
+                        box.Items.Add("기타");
+                    } else {
+                        box.Items.Add(de.Key.ToString());
+                    }
                 }
                 box.Visible = true;
 
@@ -5576,6 +5607,9 @@ namespace Client
                 AddMemberForm addMemberForm = ChatUtils.GetParentAddMemberForm((ComboBox)sender);
                 ComboBox box = addMemberForm.combobox_team;
                 string teamname = (String)box.SelectedItem;
+                if (teamname == "기타")
+                    teamname = "";
+
                 GetMemberDelegate getmember = new GetMemberDelegate(ChatUtils.GetMember);
                 Hashtable memTable = (Hashtable)Invoke(getmember,new object[] {treesource, teamname});
                 int num = box.Parent.Controls.Count;
@@ -5612,6 +5646,7 @@ namespace Client
                 ComboBox box = addMemberForm.combobox_team;
                 ListBox addbox = addMemberForm.AddListBox;
                 string teamname = (String)box.SelectedItem;
+                if (teamname == "기타") teamname = "";
                 GetMemberDelegate getmember = new GetMemberDelegate(ChatUtils.GetMember);
                 Hashtable memTable = (Hashtable)Invoke(getmember, new object[] { treesource, teamname });
                 int num = box.Parent.Controls.Count;
@@ -5701,41 +5736,17 @@ namespace Client
 
                     //채팅창 폼키에 대화자리스트 반영
                     string newFormKey = ChatUtils.GetFormKeyWithMultiUsersAdded(form.GetFormKey(), myid, addlist);
-                    form.SetFormKey(newFormKey);
+                    SetChatFormKeyUpdate(form, newFormKey, form.GetFormKey());
                 }
 
                 addMemberForm.Dispose();
+                form.TopMost = true;
+                form.Show();
+                form.ReBox.Focus();
             }
             catch (Exception exception)
             {
                 logWrite(exception.ToString());
-            }
-        }
-
-        private void RefreshChatFormListWithFormKey(string oldKey, string newKey) {
-            ChatForm chatForm = (ChatForm)ChatFormList[oldKey];
-            chatForm.SetFormKey(newKey);
-            ChatFormList.Remove(oldKey);
-            ChatFormList[newKey] = chatForm;
-        }
-
-        private void AddChatterToChatFormNode(string id, string name, ChatForm form)
-        {
-            TreeNode[] nodearray=form.ChattersTree.Nodes.Find(id, false);
-
-            if (nodearray != null && nodearray.Length != 0)
-            {
-                foreach (TreeNode anode in nodearray)
-                {
-                    if (!id.Equals(ChatUtils.GetIdFromNodeTag(anode.Tag.ToString())))
-                    {
-                        form.AddNextChatter(id, name);
-                    }
-                }
-            }
-            else
-            {
-                form.AddNextChatter(id, name);
             }
         }
 
@@ -5762,15 +5773,15 @@ namespace Client
 
                 if (tree.Nodes.Count > 1) {                     //2명이상과 대화중 폼을 닫을 경우
                 
-                    string str = "18|" + key + "|" + this.myid;    //q|Formkey|id 
 
                     for (int n = 0; n < tree.Nodes.Count; n++) {  // -1 : 마지막 공백 배열 제외
-                    
+
+                        string str = "18|" + key + "|" + this.myid;    //q|Formkey|id 
                         if (!this.myid.Equals(tree.Nodes[n].Tag)) { //자신 빼고 전송
                         
-                            str += "|" + tree.Nodes[n].Tag;
+                            str += "|" + ChatUtils.GetIdFromNodeTag(tree.Nodes[n].Tag.ToString());
 
-                            logWrite("대화상대방 id : " + tree.Nodes[n].Tag);
+                            logWrite("대화상대방 id : " + ChatUtils.GetIdFromNodeTag(tree.Nodes[n].Tag.ToString()));
                             logWrite("대화종료 메시지 생성 : " + str);
                             SendMsg(str, server);
                         }
@@ -6270,11 +6281,16 @@ namespace Client
             }
         }
 
+        /// <summary>
+        /// 쪽지쓰기 대상자 추가
+        /// </summary>
+        /// <param name="formkey"></param>
         private void AddMemoReceiver(string formkey)
         {
             try
             {
-                AddMemberForm addform = new AddMemberForm();
+                //전체 선택
+                AddMemberForm addform = new AddMemberForm(false, formkey);
                 addform.BtnConfirm.MouseClick += new MouseEventHandler(BtnConfirmForMemo_Click);
                 addform.radiobt_g.Click += new EventHandler(radiobt_g_Click);
                 addform.radiobt_con.Click += new EventHandler(radiobt_con_Click);
@@ -6283,42 +6299,13 @@ namespace Client
                 addform.CurrInListBox.MouseDoubleClick += new MouseEventHandler(CurrInListBox_MouseDoubleClick);
 
                 SendMemoForm form = (SendMemoForm)MemoFormList[formkey];
-                string[] receiverArray = null;
-                if (form.txtbox_receiver.Text.Length != 0)
-                {
-                    receiverArray = form.txtbox_receiver.Text.Split(';');
-                }
-                if (receiverArray != null)
-                {
-                    foreach (string receiver in receiverArray)
-                    {
-                        if (receiver.Length > 2)  //마지막 공백 문자열 무시
-                        {
-                            addform.AddListBox.Items.Add(receiver);
-                        }
-                    }
-                }
+                
+                string[] receiverArray = form.txtbox_receiver.Text.Split(';');
+                addform.SetAddListBox(receiverArray);
 
                 Hashtable all = GetAllMember();
-                if (all != null)
-                {
-                    if (all.Count != 0)
-                    {
-                        foreach (DictionaryEntry de in all)
-                        {
-                            if (de.Value != null)
-                            {
-                                string item = (string)de.Value + "(" + (string)de.Key + ")";
-                                if (!addform.AddListBox.Items.Contains(item))
-                                {
-                                    addform.CurrInListBox.Items.Add(item);
-                                }
-                            }
-                        }
-                    }
-                }
+                addform.SetCurrInListBox(all, MemberInfoList);
 
-                addform.formkey.Text = formkey;
                 addform.ShowDialog(form);
             }
             catch (Exception e)
@@ -6915,11 +6902,17 @@ namespace Client
             }
         }
 
+
+        /// <summary>
+        /// 파일전송 대상자 추가
+        /// </summary>
+        /// <param name="formkey"></param>
         private void AddFileReceiver(string formkey)
         {
             try
             {
-                AddMemberForm addform = new AddMemberForm();
+                //로그인사용자, 1명만 선택
+                AddMemberForm addform = new AddMemberForm(true, formkey, false);
                 addform.BtnConfirm.Click += new EventHandler(BtnConfirmForFile_Click);
                 addform.radiobt_g.Click += new EventHandler(radiobt_g_Click);
                 addform.radiobt_con.Click += new EventHandler(radiobt_con_Click);
@@ -6927,42 +6920,13 @@ namespace Client
                 addform.combobox_team.SelectedValueChanged += new EventHandler(combobox_team_SelectedValueChangedAll);
                 addform.CurrInListBox.MouseDoubleClick += new MouseEventHandler(CurrInListBox_MouseDoubleClick);
 
-                GetAllMemberDelegate getAll = new GetAllMemberDelegate(GetAllMember);
-                Hashtable all = (Hashtable)Invoke(getAll, null);
-                if (all != null)
-                {
-                    if (all.Count != 0)
-                    {
-                        foreach (DictionaryEntry de in all)
-                        {
-                            if (de.Value != null)
-                            {
-                                string item = (string)de.Value + "(" + (string)de.Key + ")";
-                                addform.CurrInListBox.Items.Add(item);
-                            }
-                        }
-                    }
-                }
+                addform.SetCurrInListBox(InList, MemberInfoList);
 
                 SendFileForm form = (SendFileForm)FileSendFormList[formkey];
-                string[] receiverArray = null;
-                if (form.txtbox_FileReceiver.Text.Length != 0)
-                {
-                    receiverArray = form.txtbox_FileReceiver.Text.Split(';');
-                }
-                if (receiverArray != null)
-                {
-                    foreach (string receiver in receiverArray)
-                    {
-                        if (receiver.Length > 2)  //마지막 공백 문자열 무시
-                        {
-                            addform.AddListBox.Items.Add(receiver);
-                        }
-                    }
-                }
-                addform.formkey.Text = formkey;
+                string[] receiverArray =  form.txtbox_FileReceiver.Text.Split(';');
+                addform.SetAddListBox(receiverArray);
+
                 addform.ShowDialog(form);
-                
             }
             catch (Exception e)
             {
@@ -6970,6 +6934,11 @@ namespace Client
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BtnConfirmForFile_Click(object sender, EventArgs e)
         {
             try
@@ -7982,15 +7951,8 @@ namespace Client
         private void btn_del_Click(object sender, MouseEventArgs e)
         {
             Button button = (Button)sender;
-            int count = button.Parent.Controls.Count;
-            ListView view = null;
-            for (int i = 0; i < count; i++)
-            {
-                if (button.Parent.Controls[i].Name.Equals("listView"))
-                {
-                    view = (ListView)button.Parent.Controls[i];
-                }
-            }
+            NoticeListForm noticeListForm = ChatUtils.GetParentNoticeListForm(button);
+            ListView view = noticeListForm.listView;
             
             string delnotices = "15|";
             if (view.CheckedItems.Count == 0)

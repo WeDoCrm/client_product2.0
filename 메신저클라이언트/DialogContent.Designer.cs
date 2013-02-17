@@ -42,16 +42,14 @@
             // 
             // richTextBoxNotice
             // 
-            this.richTextBoxNotice.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBoxNotice.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.richTextBoxNotice.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.richTextBoxNotice.ContextMenuStrip = this.contextMenuStrip2;
-            this.richTextBoxNotice.Location = new System.Drawing.Point(0, 0);
+            this.richTextBoxNotice.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.richTextBoxNotice.Location = new System.Drawing.Point(2, 2);
             this.richTextBoxNotice.Name = "richTextBoxNotice";
             this.richTextBoxNotice.ReadOnly = true;
-            this.richTextBoxNotice.Size = new System.Drawing.Size(284, 468);
+            this.richTextBoxNotice.Size = new System.Drawing.Size(280, 464);
             this.richTextBoxNotice.TabIndex = 2;
             this.richTextBoxNotice.Text = "";
             this.richTextBoxNotice.KeyDown += new System.Windows.Forms.KeyEventHandler(this.richTextBoxNotice_KeyDown);
@@ -121,6 +119,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "DialogContent";
+            this.Padding = new System.Windows.Forms.Padding(2);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "지난 대화보기";
             this.contextMenuStrip2.ResumeLayout(false);

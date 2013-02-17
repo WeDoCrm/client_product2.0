@@ -76,6 +76,27 @@ namespace Client
             return true;
         }
 
+        public static ChatForm FindChatForm(Hashtable chatFormList, string findId) {
+
+            if (chatFormList.Count != 0) {
+
+                foreach (DictionaryEntry de in chatFormList) {
+                    if (de.Value != null) {
+                        try {
+                            ChatForm form = (ChatForm)de.Value;
+                            if (form.ContainsId(findId) && form.HasSingleChatter()) {
+                                return form;
+                            }
+                        } catch (Exception e) {
+                            MsgrLogger.WriteLog("FindChatForm 에러 : " + e.ToString());
+                        }
+                    }
+                }
+            }
+            return null;
+
+        }
+
         /// <summary>
         /// 자기 id를 앞으로 해서 formkey 생성 : myid/id1/id2...
         /// </summary>
@@ -127,6 +148,13 @@ namespace Client
             return formKey;
         }
 
+        /// <summary>
+        /// 2개이상의 사용자가 폼키에 추가됨
+        /// </summary>
+        /// <param name="ids">기존폼키</param>
+        /// <param name="myId">나의아이디</param>
+        /// <param name="addedIds">추가아이디리스트(xxx/vvv/bbb)</param>
+        /// <returns></returns>
         public static string GetFormKeyWithMultiUsersAdded(string ids, string myId, string addedIds) {
             SortedList aList = GetFormKeySortedList(addedIds);
             ICollection keys = aList.Keys;
@@ -136,6 +164,15 @@ namespace Client
             }
             return resultKey;
         }
+
+        /// <summary>
+        /// 
+        /// 
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <param name="myId"></param>
+        /// <param name="logoutId"></param>
+        /// <returns></returns>
         public static string GetFormKeyWithUserLogOut(string ids, string myId, string logoutId) {
             return GetFormKeyWithUserRemoved(ids, myId, logoutId, "_out");
         }
@@ -143,13 +180,17 @@ namespace Client
         public static string GetFormKeyWithUserQuit(string ids, string myId, string quitId) {
             return GetFormKeyWithUserRemoved(ids, myId, quitId, "_quit");
         }
-        
+
         /// <summary>
+        /// 채팅창 폼키에 특정사용자를 quit 또는 out처리함.
+        /// id를 빼지는 않고, (id)_out or (id)_quit으로 문자열변경함.
         /// 
+        /// 다자 채팅창에서 이미 "_quit"인 경우 로그아웃때 "_out"처리하지 않음.
         /// </summary>
-        /// <param name="ids"></param>
+        /// <param name="ids">폼키</param>
         /// <param name="myId"></param>
-        /// <param name="logoutId"></param>
+        /// <param name="outId">대상사용자id</param>
+        /// <param name="tag"> "_out" or "_quit" </param>
         /// <returns></returns>
         public static string GetFormKeyWithUserRemoved(string ids, string myId, string outId, string tag) {
             if (ids.Contains(outId)) { //
@@ -172,6 +213,12 @@ namespace Client
             }
         }
 
+
+        /// <summary>
+        /// 폼키내의 id를 순차정렬리스트로 재구성
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
         public static SortedList GetFormKeySortedList(string ids) {
 
             SortedList aList = new SortedList();
@@ -180,6 +227,19 @@ namespace Client
                 aList.Add(item, item);
             }
             return aList;
+        }
+
+        public static string RemoveFromTitle(string title, string name) {
+            string result = "";
+            string[] titleArr = title.Split('/');
+            foreach (string item in titleArr) {
+                if (item == name)
+                    continue;
+                if (result.Length > 1)
+                    result += "/";
+                result += item;
+            }
+            return result;
         }
 
         public static ChatForm GetParentChatForm(Control ctrl) {
@@ -202,6 +262,15 @@ namespace Client
                 parent = parent.Parent;
             }
             return (AddMemberForm)parent;
+        }
+
+        public static NoticeListForm GetParentNoticeListForm(Control ctrl) {
+            Control parent = ctrl.Parent;
+
+            while (!(parent is NoticeListForm)) {
+                parent = parent.Parent;
+            }
+            return (NoticeListForm)parent;
         }
 
         public static Hashtable GetMember(Hashtable treeSource, string teamname)

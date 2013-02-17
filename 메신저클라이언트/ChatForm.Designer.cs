@@ -35,6 +35,7 @@
             this.chatSendFile = new System.Windows.Forms.Button();
             this.BtnAddChatter = new System.Windows.Forms.Button();
             this.chatStatBar = new System.Windows.Forms.StatusStrip();
+            this.StatusLabelChatStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.CutCtrlCToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.CopyCtrlCToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
@@ -62,6 +63,7 @@
             this.chatBox = new System.Windows.Forms.RichTextBox();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.chatStatBar.SuspendLayout();
             this.contextMenuStrip2.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -79,7 +81,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(282, 36);
+            this.panel1.Size = new System.Drawing.Size(344, 36);
             this.panel1.TabIndex = 0;
             // 
             // pictureBox1
@@ -112,11 +114,19 @@
             // 
             // chatStatBar
             // 
-            this.chatStatBar.Location = new System.Drawing.Point(0, 475);
+            this.chatStatBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.StatusLabelChatStatus});
+            this.chatStatBar.Location = new System.Drawing.Point(0, 490);
             this.chatStatBar.Name = "chatStatBar";
-            this.chatStatBar.Size = new System.Drawing.Size(282, 22);
+            this.chatStatBar.Size = new System.Drawing.Size(344, 22);
             this.chatStatBar.TabIndex = 3;
             this.chatStatBar.Text = "상태바";
+            // 
+            // StatusLabelChatStatus
+            // 
+            this.StatusLabelChatStatus.Name = "StatusLabelChatStatus";
+            this.StatusLabelChatStatus.Size = new System.Drawing.Size(300, 17);
+            this.StatusLabelChatStatus.Text = "마지막 메시지를 받은 시간:2013-02-16 오전 12:43:12";
             // 
             // contextMenuStrip2
             // 
@@ -187,7 +197,7 @@
             this.ChattersTree.ShowLines = false;
             this.ChattersTree.ShowPlusMinus = false;
             this.ChattersTree.ShowRootLines = false;
-            this.ChattersTree.Size = new System.Drawing.Size(282, 44);
+            this.ChattersTree.Size = new System.Drawing.Size(344, 44);
             this.ChattersTree.StateImageList = this.imageList;
             this.ChattersTree.TabIndex = 7;
             // 
@@ -195,11 +205,11 @@
             // 
             this.imageList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList.ImageStream")));
             this.imageList.TransparentColor = System.Drawing.Color.Transparent;
-            this.imageList.Images.SetKeyName(0, "통화중.png");
-            this.imageList.Images.SetKeyName(1, "부재중.png");
-            this.imageList.Images.SetKeyName(2, "로그아웃.png");
-            this.imageList.Images.SetKeyName(3, "온라인.png");
-            this.imageList.Images.SetKeyName(4, "다른용무중.png");
+            this.imageList.Images.SetKeyName(0, "온라인.png");
+            this.imageList.Images.SetKeyName(1, "로그아웃.png");
+            this.imageList.Images.SetKeyName(2, "통화중.png");
+            this.imageList.Images.SetKeyName(3, "다른용무중.png");
+            this.imageList.Images.SetKeyName(4, "부재중.png");
             // 
             // Formkey
             // 
@@ -274,9 +284,9 @@
             this.panel2.Controls.Add(this.txtbox_exam);
             this.panel2.Controls.Add(this.label1);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel2.Location = new System.Drawing.Point(0, 386);
+            this.panel2.Location = new System.Drawing.Point(0, 401);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(282, 89);
+            this.panel2.Size = new System.Drawing.Size(344, 89);
             this.panel2.TabIndex = 14;
             this.panel2.Text = "panel2";
             // 
@@ -287,7 +297,7 @@
             this.panel4.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel4.Location = new System.Drawing.Point(0, 31);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(282, 58);
+            this.panel4.Size = new System.Drawing.Size(344, 58);
             this.panel4.TabIndex = 18;
             this.panel4.Text = "panel4";
             // 
@@ -298,7 +308,7 @@
             this.panel5.Location = new System.Drawing.Point(0, 0);
             this.panel5.Name = "panel5";
             this.panel5.Padding = new System.Windows.Forms.Padding(3);
-            this.panel5.Size = new System.Drawing.Size(221, 58);
+            this.panel5.Size = new System.Drawing.Size(283, 58);
             this.panel5.TabIndex = 17;
             this.panel5.Text = "panel5";
             // 
@@ -310,15 +320,16 @@
             this.ReBox.Location = new System.Drawing.Point(3, 3);
             this.ReBox.Multiline = true;
             this.ReBox.Name = "ReBox";
-            this.ReBox.Size = new System.Drawing.Size(215, 52);
+            this.ReBox.Size = new System.Drawing.Size(277, 52);
             this.ReBox.TabIndex = 16;
+            this.ReBox.TextChanged += new System.EventHandler(this.ReBox_TextChanged_1);
             this.ReBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ReBox_KeyUp);
             // 
             // btnSend
             // 
             this.btnSend.Dock = System.Windows.Forms.DockStyle.Right;
             this.btnSend.Image = ((System.Drawing.Image)(resources.GetObject("btnSend.Image")));
-            this.btnSend.Location = new System.Drawing.Point(221, 0);
+            this.btnSend.Location = new System.Drawing.Point(283, 0);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(61, 58);
             this.btnSend.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -328,6 +339,7 @@
             // 
             // label_font
             // 
+            this.label_font.BackColor = System.Drawing.Color.Transparent;
             this.label_font.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.label_font.ForeColor = System.Drawing.SystemColors.WindowText;
             this.label_font.Location = new System.Drawing.Point(9, 5);
@@ -341,7 +353,7 @@
             // 
             this.txtbox_exam.BackColor = System.Drawing.SystemColors.Window;
             this.txtbox_exam.Font = new System.Drawing.Font("굴림", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.txtbox_exam.Location = new System.Drawing.Point(190, 5);
+            this.txtbox_exam.Location = new System.Drawing.Point(249, 5);
             this.txtbox_exam.Name = "txtbox_exam";
             this.txtbox_exam.ReadOnly = true;
             this.txtbox_exam.Size = new System.Drawing.Size(85, 23);
@@ -350,9 +362,10 @@
             // 
             // label1
             // 
+            this.label1.BackColor = System.Drawing.Color.Transparent;
             this.label1.Font = new System.Drawing.Font("굴림", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.label1.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.label1.Location = new System.Drawing.Point(133, 9);
+            this.label1.Location = new System.Drawing.Point(192, 9);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
             this.label1.TabIndex = 15;
@@ -365,7 +378,7 @@
             this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel3.Location = new System.Drawing.Point(0, 80);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(282, 306);
+            this.panel3.Size = new System.Drawing.Size(344, 321);
             this.panel3.TabIndex = 15;
             this.panel3.Text = "panel3";
             // 
@@ -378,7 +391,7 @@
             this.chatBox.Name = "chatBox";
             this.chatBox.ReadOnly = true;
             this.chatBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this.chatBox.Size = new System.Drawing.Size(282, 306);
+            this.chatBox.Size = new System.Drawing.Size(344, 321);
             this.chatBox.TabIndex = 10;
             this.chatBox.Text = "";
             // 
@@ -388,7 +401,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.BackColor = System.Drawing.SystemColors.MenuBar;
-            this.ClientSize = new System.Drawing.Size(282, 497);
+            this.ClientSize = new System.Drawing.Size(344, 512);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.ChattersTree);
@@ -397,12 +410,14 @@
             this.Controls.Add(this.chatStatBar);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(298, 535);
+            this.MinimumSize = new System.Drawing.Size(360, 550);
             this.Name = "ChatForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ChatForm_KeyDown);
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.chatStatBar.ResumeLayout(false);
+            this.chatStatBar.PerformLayout();
             this.contextMenuStrip2.ResumeLayout(false);
             this.contextMenuStrip1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
@@ -449,5 +464,6 @@
         private Elegant.Ui.Panel panel5;
         public System.Windows.Forms.PictureBox btnSend;
         public System.Windows.Forms.TextBox ReBox;
+        private System.Windows.Forms.ToolStripStatusLabel StatusLabelChatStatus;
     }
 }

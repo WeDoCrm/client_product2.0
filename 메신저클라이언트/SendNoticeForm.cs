@@ -29,20 +29,20 @@ namespace Client
                 TextBoxTitle.Focus();
                 return;
             }
-            if (TextBoxContent.Text.Length != 0)
+            if (richTextBoxContent.Text.Length != 0)
             {
                 String NoticeTime = DateTime.Now.ToString();
                 NoticeInfo info = new NoticeInfo();
                 info.IsEmergency = ToggleButtonNormalNotice.Pressed;
                 info.Title = TextBoxTitle.Text;
-                info.Content = TextBoxContent.Text;
+                info.Content = richTextBoxContent.Text;
                 NoticeRegisterRequested(this, new CustomEventArgs(info));
                 Close();
             }
             else
             {
                 MessageBox.Show("공지할 내용을 적어 주세요", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                TextBoxContent.Focus();
+                richTextBoxContent.Focus();
             }
         }
 
@@ -71,6 +71,41 @@ namespace Client
                 }
             }
 
+        }
+
+        private void CutCtrlCToolStripMenuItem2_Click(object sender, EventArgs e) {
+            richTextBoxContent.Cut();
+        }
+
+        private void CopyCtrlCToolStripMenuItem2_Click(object sender, EventArgs e) {
+            richTextBoxContent.Copy();
+        }
+
+        private void PasteCtrlCToolStripMenuItem2_Click(object sender, EventArgs e) {
+            richTextBoxContent.Paste();
+        }
+
+        private void SelectAllCtrlCToolStripMenuItem2_Click(object sender, EventArgs e) {
+            richTextBoxContent.SelectAll();
+        }
+
+        private void RichTextBoxContent_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Modifiers == Keys.ControlKey) {
+                switch (e.KeyData) {
+                    case Keys.C:
+                        richTextBoxContent.Copy();
+                        break;
+                    case Keys.P:
+                        richTextBoxContent.Paste();
+                        break;
+                    case Keys.X:
+                        richTextBoxContent.Cut();
+                        break;
+                    case Keys.A:
+                        richTextBoxContent.SelectAll();
+                        break;
+                }
+            }
         }
     }
 }

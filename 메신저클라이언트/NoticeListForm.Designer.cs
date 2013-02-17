@@ -29,38 +29,89 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(NoticeListForm));
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.btn_all = new System.Windows.Forms.Button();
+            this.cancel = new System.Windows.Forms.Button();
+            this.btn_del = new System.Windows.Forms.Button();
+            this.panel3 = new System.Windows.Forms.Panel();
             this.listView = new System.Windows.Forms.ListView();
             this.mode = new System.Windows.Forms.ColumnHeader();
             this.title = new System.Windows.Forms.ColumnHeader();
             this.content = new System.Windows.Forms.ColumnHeader();
             this.sender = new System.Windows.Forms.ColumnHeader();
             this.time = new System.Windows.Forms.ColumnHeader();
-            this.btn_del = new System.Windows.Forms.Button();
-            this.btn_all = new System.Windows.Forms.Button();
-            this.cancel = new System.Windows.Forms.Button();
+            this.panel1.SuspendLayout();
+            this.panel3.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.btn_all);
+            this.panel1.Controls.Add(this.cancel);
+            this.panel1.Controls.Add(this.btn_del);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel1.Location = new System.Drawing.Point(0, 296);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(652, 29);
+            this.panel1.TabIndex = 16;
+            // 
+            // btn_all
+            // 
+            this.btn_all.Location = new System.Drawing.Point(13, 3);
+            this.btn_all.Name = "btn_all";
+            this.btn_all.Size = new System.Drawing.Size(75, 25);
+            this.btn_all.TabIndex = 16;
+            this.btn_all.Text = "전체선택";
+            this.btn_all.UseVisualStyleBackColor = true;
+            this.btn_all.MouseClick += new System.Windows.Forms.MouseEventHandler(this.btn_all_MouseClick);
+            // 
+            // cancel
+            // 
+            this.cancel.Location = new System.Drawing.Point(94, 3);
+            this.cancel.Name = "cancel";
+            this.cancel.Size = new System.Drawing.Size(75, 25);
+            this.cancel.TabIndex = 17;
+            this.cancel.Text = "선택취소";
+            this.cancel.UseVisualStyleBackColor = true;
+            this.cancel.MouseClick += new System.Windows.Forms.MouseEventHandler(this.cancel_MouseClick);
+            // 
+            // btn_del
+            // 
+            this.btn_del.Location = new System.Drawing.Point(565, 3);
+            this.btn_del.Name = "btn_del";
+            this.btn_del.Size = new System.Drawing.Size(75, 25);
+            this.btn_del.TabIndex = 15;
+            this.btn_del.Text = "삭제";
+            this.btn_del.UseVisualStyleBackColor = true;
+            // 
+            // panel3
+            // 
+            this.panel3.Controls.Add(this.listView);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel3.Location = new System.Drawing.Point(0, 0);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(652, 296);
+            this.panel3.TabIndex = 17;
             // 
             // listView
             // 
             this.listView.Activation = System.Windows.Forms.ItemActivation.OneClick;
             this.listView.AllowColumnReorder = true;
-            this.listView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
             this.listView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.mode,
             this.title,
             this.content,
             this.sender,
             this.time});
+            this.listView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listView.FullRowSelect = true;
             this.listView.GridLines = true;
             this.listView.ImeMode = System.Windows.Forms.ImeMode.Hangul;
-            this.listView.Location = new System.Drawing.Point(1, 2);
+            this.listView.Location = new System.Drawing.Point(0, 0);
             this.listView.Name = "listView";
-            this.listView.Size = new System.Drawing.Size(650, 286);
+            this.listView.Size = new System.Drawing.Size(652, 296);
             this.listView.Sorting = System.Windows.Forms.SortOrder.Descending;
-            this.listView.TabIndex = 1;
+            this.listView.TabIndex = 15;
             this.listView.UseCompatibleStateImageBehavior = false;
             this.listView.View = System.Windows.Forms.View.Details;
             this.listView.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listView_ColumnClick);
@@ -95,66 +146,40 @@
             this.time.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.time.Width = 119;
             // 
-            // btn_del
-            // 
-            this.btn_del.Location = new System.Drawing.Point(565, 296);
-            this.btn_del.Name = "btn_del";
-            this.btn_del.Size = new System.Drawing.Size(75, 23);
-            this.btn_del.TabIndex = 9;
-            this.btn_del.Text = "삭제";
-            this.btn_del.UseVisualStyleBackColor = true;
-            // 
-            // btn_all
-            // 
-            this.btn_all.Location = new System.Drawing.Point(6, 296);
-            this.btn_all.Name = "btn_all";
-            this.btn_all.Size = new System.Drawing.Size(75, 23);
-            this.btn_all.TabIndex = 10;
-            this.btn_all.Text = "전체선택";
-            this.btn_all.UseVisualStyleBackColor = true;
-            this.btn_all.MouseClick += new System.Windows.Forms.MouseEventHandler(this.btn_all_MouseClick);
-            // 
-            // cancel
-            // 
-            this.cancel.Location = new System.Drawing.Point(87, 296);
-            this.cancel.Name = "cancel";
-            this.cancel.Size = new System.Drawing.Size(75, 23);
-            this.cancel.TabIndex = 11;
-            this.cancel.Text = "선택취소";
-            this.cancel.UseVisualStyleBackColor = true;
-            this.cancel.MouseClick += new System.Windows.Forms.MouseEventHandler(this.cancel_MouseClick);
-            // 
             // NoticeListForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(652, 325);
-            this.Controls.Add(this.cancel);
-            this.Controls.Add(this.btn_all);
-            this.Controls.Add(this.btn_del);
-            this.Controls.Add(this.listView);
+            this.Controls.Add(this.panel3);
+            this.Controls.Add(this.panel1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(556, 355);
+            this.MaximumSize = new System.Drawing.Size(668, 363);
+            this.MinimumSize = new System.Drawing.Size(668, 363);
             this.Name = "NoticeListForm";
-            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "공지사항 목록 ( 검색 : Ctrl+F )";
-            this.SizeChanged += new System.EventHandler(this.NoticeListForm_SizeChanged);
+            this.panel1.ResumeLayout(false);
+            this.panel3.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        public System.Windows.Forms.ListView listView;
-        public System.Windows.Forms.ColumnHeader sender;
-        public System.Windows.Forms.ColumnHeader time;
-        public System.Windows.Forms.ColumnHeader content;
-        public System.Windows.Forms.ColumnHeader mode;
-        public System.Windows.Forms.ColumnHeader title;
-        public System.Windows.Forms.Button btn_del;
+        private System.Windows.Forms.Panel panel1;
         public System.Windows.Forms.Button btn_all;
         public System.Windows.Forms.Button cancel;
+        public System.Windows.Forms.Button btn_del;
+        private System.Windows.Forms.Panel panel3;
+        public System.Windows.Forms.ListView listView;
+        public System.Windows.Forms.ColumnHeader mode;
+        public System.Windows.Forms.ColumnHeader title;
+        public System.Windows.Forms.ColumnHeader content;
+        public System.Windows.Forms.ColumnHeader sender;
+        public System.Windows.Forms.ColumnHeader time;
+
 
     }
 }

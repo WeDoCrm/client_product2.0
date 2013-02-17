@@ -73,18 +73,18 @@
             // 
             // btn_del
             // 
-            this.btn_del.Location = new System.Drawing.Point(244, 270);
+            this.btn_del.Location = new System.Drawing.Point(243, 270);
             this.btn_del.Name = "btn_del";
-            this.btn_del.Size = new System.Drawing.Size(57, 28);
+            this.btn_del.Size = new System.Drawing.Size(57, 25);
             this.btn_del.TabIndex = 9;
             this.btn_del.Text = "삭제";
             this.btn_del.UseVisualStyleBackColor = true;
             // 
             // btn_cancel
             // 
-            this.btn_cancel.Location = new System.Drawing.Point(74, 271);
+            this.btn_cancel.Location = new System.Drawing.Point(81, 271);
             this.btn_cancel.Name = "btn_cancel";
-            this.btn_cancel.Size = new System.Drawing.Size(71, 27);
+            this.btn_cancel.Size = new System.Drawing.Size(71, 25);
             this.btn_cancel.TabIndex = 10;
             this.btn_cancel.Text = "선택취소";
             this.btn_cancel.UseVisualStyleBackColor = true;
@@ -92,9 +92,9 @@
             // 
             // btn_all
             // 
-            this.btn_all.Location = new System.Drawing.Point(0, 271);
+            this.btn_all.Location = new System.Drawing.Point(7, 271);
             this.btn_all.Name = "btn_all";
-            this.btn_all.Size = new System.Drawing.Size(71, 27);
+            this.btn_all.Size = new System.Drawing.Size(71, 25);
             this.btn_all.TabIndex = 11;
             this.btn_all.Text = "전체선택";
             this.btn_all.UseVisualStyleBackColor = true;

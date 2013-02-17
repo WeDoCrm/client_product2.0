@@ -23,8 +23,8 @@ namespace Client
 
         private void tbx_extension_TextChanged(object sender, EventArgs e)
         {
-            int val;
-            if (tbx_extension.Text != "" && !int.TryParse(tbx_extension.Text, out val))
+            Int64 val;
+            if (tbx_extension.Text != "" && !Int64.TryParse(tbx_extension.Text, out val))
             {
                 MessageBox.Show(this, "숫자를 입력하세요.", "오류", MessageBoxButtons.OK);
                 tbx_extension.Text = "";

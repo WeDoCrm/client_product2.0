@@ -55,5 +55,10 @@ namespace Client.PopUp
             TopMost = false;
         }
 
+        private void FlashWindowForm_FormClosing(object sender, FormClosingEventArgs e) {
+            _TimerFlashWindow.Stop();
+        }
+
+
     }
 }
