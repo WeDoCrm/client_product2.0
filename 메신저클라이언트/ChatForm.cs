@@ -24,26 +24,32 @@ namespace Client {
         private Font messagePartFont;
         private Color messagePartColor;
 
+        private Hashtable htUserColorTable = new Hashtable();
+        private MsgColor msgColor = new MsgColor();
+        
         private string finalPoster;
 
         private ToolTip toolTip = new ToolTip();
+        private ToolTip tipAddChatter = new ToolTip();
 
         private string myId;
 
         public event EventHandler<EventArgs> ChatMessageAdded;
 
+        private bool isActivated = false;
 #region 폼처리메소드
 
         public ChatForm(string myId) {
             try {
                 InitializeComponent();
-                this.Shown += new EventHandler(ChatForm_Shown);
                 this.Activated += new EventHandler(Form_Activated);
                 this.chatBox.TextChanged += new EventHandler(chatBox_TextChanged);
                 txtbox_exam.Font = defaultMessageFont;
                 txtbox_exam.ForeColor = defaultMessageColor;
                 StatusLabelChatStatus.Text = "";
                 this.myId = myId;
+                tipAddChatter.SetToolTip(BtnAddChatter, "대화 상대방 추가");
+
             } catch (Exception ex) {
                 MsgrLogger.WriteLog(ex.ToString());
                 throw;
@@ -69,31 +75,17 @@ namespace Client {
             txtbox_exam.ForeColor = messagePartColor;
         }
 
-        private void ChatForm_Shown(object sender, EventArgs e) {
-            this.ReBox.Focus();
-        }
-
         private void chatBox_TextChanged(object sender, EventArgs e) {
             try {
-                if (this.Focused == false && this.ReBox.Focused == false && this.btnSend.Focused == false && chatBox.Focused == false)
-                    DoFlashWindow();
+                //if (this.Focused == false && this.ReBox.Focused == false && this.btnSend.Focused == false && chatBox.Focused == false)
+                if (!isActivated) DoFlashWindow();
             } catch (Exception ex) {
                 MsgrLogger.WriteLog(ex.ToString());
                 throw;
             }
         }
 
-        private void ChatForm_Load(object sender, EventArgs e) {
-            try {
-                StopFlash();
-            } catch (Exception ex) {
-                MsgrLogger.WriteLog(ex.ToString());
-                throw;
-            }
-        }
-
-
-        private void label_font_Click(object sender, EventArgs e) {
+         private void label_font_Click(object sender, EventArgs e) {
             try {
                 FontDialog dialog = new FontDialog();
                 
@@ -126,12 +118,16 @@ namespace Client {
 
         private void Form_Activated(object sender, EventArgs e) {
             try {
-                StopFlash();
                 this.ReBox.Focus();
             } catch (Exception ex) {
                 MsgrLogger.WriteLog(ex.ToString());
-                throw;
             }
+        }
+
+        public void SetForward() {
+            this.WindowState = FormWindowState.Normal;
+            this.TopMost = true;
+            this.Show();
         }
 
         private void ReBox_KeyDown(object sender, KeyEventArgs e) {
@@ -163,11 +159,10 @@ namespace Client {
         }
 
         private void ReBox_TextChanged(object sender, EventArgs e) {
-            if (ReBox.Lines.Length >= 5) {
+            if (ReBox.Lines.Length >= 4)
                 ReBox.ScrollBars = ScrollBars.Vertical;
-            } else {
+            else
                 ReBox.ScrollBars = ScrollBars.None;
-            }
         }
 
         private void CopyCtrlCToolStripMenuItem1_Click(object sender, EventArgs e) {
@@ -227,10 +222,7 @@ namespace Client {
 
         private void ReBox_KeyUp(object sender, KeyEventArgs e) {
             try {
-                if (e.Control && e.KeyCode == Keys.Enter) //Ctrl + enter
-                {
-                    return;
-                } else if (e.KeyCode == Keys.Enter) {
+                if (e.KeyCode == Keys.Enter) {
                     ChatMessageAdded(sender, e);
                 }
             } catch (Exception exception) {
@@ -246,13 +238,14 @@ namespace Client {
         private void AddMessage(string msg) {
             chatBox.AppendText(msg + "\r\n");
             chatBox.ScrollToCaret();
-            ReBox.Focus();
+            if (isActivated) ReBox.Focus();
         }
 
-        public void SetChatterOnFormOpening(string id, string name) {
-            if (id == null || id.Trim() == "" || id.Trim() == myId)
+        public void SetChatterOnFormOpening(UserObject userObj) {
+            if (userObj == null || userObj.Id == null
+                || userObj.Id.Trim() == "" || userObj.Id.Trim() == myId)
                 return;
-            AddChatter(id, name);
+            AddChatter(userObj);
         }
 
         public bool HasSingleChatter() {
@@ -285,27 +278,42 @@ namespace Client {
         }
 
         public bool ContainsId(string id) {
-            return (ChattersTree.Nodes.Find(id, false) != null);
+            TreeNode[] nodeArray = ChattersTree.Nodes.Find(id, false);
+            return (nodeArray != null && nodeArray.Length > 0);
         }
 
-        public void AddNextChatter(string id, string name) {
-            if (id == null || id.Trim() == "" || id.Trim() == myId)
+        public void AddNextChatter(UserObject userObj) {
+            if (userObj == null || userObj.Id == null
+                || userObj.Id.Trim() == "" || userObj.Id.Trim() == myId)
                 return;
-            AddChatter(id, name);
-            PostUserJoinMessage(name);
+            AddChatter(userObj);
+            PostUserJoinMessage(userObj.Name);
         }
 
-        private void AddChatter(string id, string name) {
+        /// <summary>
+        /// 1. 노드 추가
+        /// 2. 창타이틀에 이름 반영
+        /// 3. 색깔반영
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        private void AddChatter(UserObject userObj) {
 
-            TreeNode node = ChattersTree.Nodes.Add(id, name + "(" + id + ")");
-            node.Tag = id + CommonDef.CHAT_USER_LOG_IN;
-            node.ImageIndex = 0;
-            node.SelectedImageIndex = 0;
+            TreeNode node = ChattersTree.Nodes.Add(userObj.Id, userObj.TitleName + "(" + userObj.Id + ")");
+            node.Tag = userObj;
+            //node.ImageIndex = 0;
+            //node.SelectedImageIndex = 0;
             node.BackColor = Color.FromArgb(205, 220, 237);
             if (ChattersTree.Nodes.Count == 1)
-                this.Text += name;
+                this.Text += userObj.Name;
             else
-                this.Text += "/" + name;
+                this.Text += "/" + userObj.Name;
+            //채팅참여했다가 나간후 다시 참여한 경우, 원래 색을 그대로 쓴다.
+            if (!htUserColorTable.Contains(userObj.Id)) {
+                htUserColorTable.Add(userObj.Id, msgColor.GetColor(ChattersTree.Nodes.Count));
+            }
+            //상태지정
+            SetChatterStatus(userObj.Id, userObj.Name, userObj.Status);
         }
 
         /// <summary>
@@ -316,7 +324,6 @@ namespace Client {
             TreeNode[] node = ChattersTree.Nodes.Find(id, false);
             string message = string.Format("{0}님이 창을 닫고 대화를 종료하였습니다.\r\n", node[0].Text);
             AddMessage(message);
-            //form.chatBox.AppendText("\r\n###" + node[0].Text + "님이 창을 닫고 대화를 종료하였습니다.." + "\r\n\r\n");
             node[0].Remove();
 
             this.Text = ChatUtils.RemoveFromTitle(this.Text, name);
@@ -327,20 +334,18 @@ namespace Client {
         /// </summary>
         /// <param name="id">user id</param>
         /// <param name="name">user name</param>
-        public void AddChatterToNode(string id, string name) {
-            if (id == null || id.Trim() == "" || id.Trim() == myId)
+        public void AddChatterToNode(UserObject userObj) {
+            if (userObj == null || userObj.Id == null
+                || userObj.Id.Trim() == "" || userObj.Id.Trim() == myId)
                 return;
 
-            TreeNode[] nodearray = ChattersTree.Nodes.Find(id, false);
+            TreeNode[] nodearray = ChattersTree.Nodes.Find(userObj.Id, false);
 
             if (nodearray != null && nodearray.Length != 0) {
-                foreach (TreeNode anode in nodearray) {
-                    if (!id.Equals(ChatUtils.GetIdFromNodeTag(anode.Tag.ToString()))) {
-                        AddNextChatter(id, name);
-                    }
-                }
+                //있는경우는 오류
+                MsgrLogger.WriteLog(string.Format("AddChatterToNode:{0}({1})이 이미 존재함.", userObj.Name, userObj.Id));
             } else {
-                AddNextChatter(id, name);
+                AddNextChatter(userObj);
             }
         }
 
@@ -352,45 +357,43 @@ namespace Client {
                     MsgrLogger.WriteLog(string.Format("채팅창에 참여한 {0}이 하나이상 존재.", userId));
                 
                 TreeNode anode = nodearray[0];
-                if (userId.Equals(ChatUtils.GetIdFromNodeTag(anode.Tag.ToString()))) {
+                try {
+                    UserObject userObj = (UserObject)anode.Tag;
+                    if (userId.Equals(userObj.Id)) {
 
-                    switch (status) {
-                        case MsgrUserStatus.ONLINE://"online":
-                            anode.ImageIndex = 0;
-                            anode.SelectedImageIndex = 0;
-                            anode.Text = string.Format("{0}({1})", userName, userId);
-                            anode.ForeColor = Color.Black;
-                            anode.Tag = userId + CommonDef.CHAT_USER_LOG_IN;
-                            break;
-                        case MsgrUserStatus.LOGOUT://"logout":
-                            anode.ImageIndex = 1;
-                            anode.SelectedImageIndex = 1;
-                            anode.Text = string.Format("{0}({1})", userName, userId);
-                            anode.ForeColor = Color.Gray;
-                            anode.Tag = userId + CommonDef.CHAT_USER_LOG_OUT;
-                            break;
-                        case MsgrUserStatus.BUSY://"busy":
-                            anode.ImageIndex = 2;
-                            anode.SelectedImageIndex = 2;
-                            anode.Text = string.Format("{0}({1}){2}", userName, userId, "(통화중)");
-                            anode.ForeColor = Color.Black;
-                            anode.Tag = userId + CommonDef.CHAT_USER_LOG_IN;
-                            break;
-                        case MsgrUserStatus.DND://"DND":
-                            anode.ImageIndex = 3;
-                            anode.SelectedImageIndex = 3;
-                            anode.Text = string.Format("{0}({1}){2}", userName, userId, "(다른용무중)");
-                            anode.ForeColor = Color.Black;
-                            anode.Tag = userId + CommonDef.CHAT_USER_LOG_IN;
-                            break;
-                        case MsgrUserStatus.AWAY://"away":
-                            anode.ImageIndex = 4;
-                            anode.SelectedImageIndex = 4;
-                            anode.Text = string.Format("{0}({1}){2}", userName, userId, "(자리비움)");
-                            anode.ForeColor = Color.Black;
-                            anode.Tag = userId + CommonDef.CHAT_USER_LOG_IN;
-                            break;
+                        switch (status) {
+                            case MsgrUserStatus.ONLINE://"online":
+                                anode.ImageIndex = 0;
+                                anode.SelectedImageIndex = 0;
+                                anode.ForeColor = Color.Black;
+                                break;
+                            case MsgrUserStatus.LOGOUT://"logout":
+                                anode.ImageIndex = 1;
+                                anode.SelectedImageIndex = 1;
+                                anode.ForeColor = Color.Gray;
+                                break;
+                            case MsgrUserStatus.BUSY://"busy":
+                                anode.ImageIndex = 2;
+                                anode.SelectedImageIndex = 2;
+                                anode.ForeColor = Color.Black;
+                                break;
+                            case MsgrUserStatus.DND://"DND":
+                                anode.ImageIndex = 3;
+                                anode.SelectedImageIndex = 3;
+                                anode.ForeColor = Color.Black;
+                                break;
+                            case MsgrUserStatus.AWAY://"away":
+                                anode.ImageIndex = 4;
+                                anode.SelectedImageIndex = 4;
+                                anode.ForeColor = Color.Black;
+                                break;
+                        }
+                        userObj.Status = status;
+                        anode.Text = string.Format("{0}({1})", userObj.TitleName, userId);
+                        anode.Tag = userObj; //userId + CommonDef.CHAT_USER_LOG_IN;
                     }
+                } catch (Exception ex) {
+                    MsgrLogger.WriteLog(ex.ToString());
                 }
             }
         }
@@ -400,21 +403,23 @@ namespace Client {
         /// 1. 로그아웃메시지 표시
         /// 2. 노드 로그아웃표시
         /// 3. 1:1인경우 창 비활성화시킴
+        /// 
+        /// 다자창의 경우는 LogOut이전에 Quit이 먼저발생하나, 예외상황을 감안함.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         public void SetChatterLogOut(string userId, string userName) {
 
             TreeNode[] node = ChattersTree.Nodes.Find(userId, false);
-            
-            if (node.Length == 1) {
+
+            if (node != null && node.Length != 0 ) {
                 //메시지 표시
                 AddMessage(string.Format("{0}님이 로그아웃하셨습니다.\r\n", userName));
                 //노드에 로그아웃으로 표시함
                 SetChatterStatus(userId, userName, MsgrUserStatus.LOGOUT);
                 MsgrLogger.WriteLog(string.Format("{0}({1})를 로그아웃 처리.", userName, userId));
                 //1:1 인 경우
-                if (ChattersTree.Nodes.Count == 1) {
+                if (this.HasSingleChatter()) {
                     ReBox.Enabled = false;
                     toolTip.SetToolTip(ReBox, string.Format("{0}님이 로그아웃하셨습니다.\r\n", userName));
                 }
@@ -423,21 +428,24 @@ namespace Client {
 
         /// <summary>
         /// 1:1창에서 out->in인 경우만 해당
+        /// 다자창에서 busy/dnd/away->in인 경우만 해당
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="userName"></param>
         public void SetChatterLogIn(string userId, string userName) {
 
             TreeNode[] node = ChattersTree.Nodes.Find(userId, false);
-            if (node.Length != 0 && ChattersTree.Nodes.Count == 1) {
+
+            if ( node != null && node.Length != 0 ) {
                 //메시지 표시
-                AddMessage(string.Format("{0}님이 로그인하셨습니다.\r\n", userName));
+                if (this.HasSingleChatter()) {//다자창에서는 필요없음
+                    AddMessage(string.Format("{0}님이 로그인하셨습니다.\r\n", userName));
+                    ReBox.Enabled = true;
+                    toolTip.RemoveAll();
+                }
                 //노드에 로그인으로 표시함
                 SetChatterStatus(userId, userName, MsgrUserStatus.ONLINE);
                 MsgrLogger.WriteLog(string.Format("{0}({1})를 로그인 처리.", userName, userId));
-                //1:1 인 경우
-                ReBox.Enabled = true;
-                toolTip.RemoveAll();
             }
         }
 
@@ -450,14 +458,14 @@ namespace Client {
         }
 
         public void PostMyMessage(string myName, string message) {
-            PostChatMessage(myName, message, true);
+            PostChatMessage(this.myId, myName, message, true);
         }
 
-        public void PostUserMessage(string userName, string message)
+        public void PostUserMessage(string userId, string userName, string message)
         {
-            PostChatMessage(userName, message, false);
+            PostChatMessage(userId, userName, message, false);
         }
-        public void PostChatMessage(string userName, string message, bool isMine)
+        public void PostChatMessage(string userId, string userName, string message, bool isMine)
         {
             int startPos = 0;
             //이전 메시지올린사람과 동일인 경우, 생략.
@@ -474,11 +482,13 @@ namespace Client {
             string msgMain = "ㆍ  " + message;
             startPos = chatBox.Text.Length;
             AddMessage(msgMain);
-            if (isMine)
-            {
+            if (isMine) {
                 chatBox.Select(startPos, msgMain.Length);
                 chatBox.SelectionFont = this.messagePartFont;
                 chatBox.SelectionColor = this.messagePartColor;
+            } else {
+                chatBox.Select(startPos, msgMain.Length);
+                chatBox.SelectionColor = (Color)htUserColorTable[userId];
             }
             chatBox.ScrollToCaret();
 
@@ -487,16 +497,32 @@ namespace Client {
             if (!isMine) {
                 StatusLabelChatStatus.Text = "마지막 메시지를 받은 시간:" + DateTime.Now.ToString();
             }
-            ReBox.Focus();
+            if (isActivated) ReBox.Focus();
         }
 #endregion
 
-        private void ReBox_TextChanged_1(object sender, EventArgs e) {
-            if (ReBox.Lines.Length >= 4) 
-                ReBox.ScrollBars = ScrollBars.Vertical;
-            else
-                ReBox.ScrollBars = ScrollBars.None;
+        private void ChatForm_Activated(object sender, EventArgs e)
+        {
+            ReBox.Focus();
+            isActivated = true;
+            Console.WriteLine("ChatForm_Activated");
         }
 
+        private void ChatForm_Deactivate(object sender, EventArgs e)
+        {
+            isActivated = false;
+        }
+
+        public bool IsActivated() {
+            return isActivated;
+        }
+
+        private void ChatForm_Shown(object sender, EventArgs e) {
+            this.TopMost = true;
+        }
+
+        private void ChatForm_Enter(object sender, EventArgs e) {
+            Console.WriteLine("ChatForm_Enter");
+        }
     }
 }

@@ -21,6 +21,7 @@ namespace Client.PopUp
             _TimerFlashWindow.Interval = 1000;
             _TimerFlashWindow.Tick += new EventHandler(_TimerFlash_Tick);
             TopMost = true;
+            _TimerFlashWindow.Start();
         }
 
         private void _TimerFlash_Tick(object sender, EventArgs e)
@@ -30,7 +31,6 @@ namespace Client.PopUp
 
         public void DoFlashWindow()
         {
-            WindowState = FormWindowState.Minimized;
             Show();
             _TimerFlashWindow.Start();
         }
@@ -59,6 +59,35 @@ namespace Client.PopUp
             _TimerFlashWindow.Stop();
         }
 
+        protected override void OnClosed(EventArgs e) {
+            UnhookControl(this as System.Windows.Forms.Control);
+            base.OnClosed(e);
+        }
+
+        protected override void OnLoad(EventArgs e) {
+            base.OnLoad(e);
+
+            HookControl(this as System.Windows.Forms.Control);
+        }
+
+        private void HookControl(System.Windows.Forms.Control controlToHook) {
+            controlToHook.MouseClick += AllControlsMouseClick;
+            foreach (System.Windows.Forms.Control ctl in controlToHook.Controls) {
+                HookControl(ctl);
+            }
+        }
+
+        private void UnhookControl(System.Windows.Forms.Control controlToUnhook) {
+            controlToUnhook.MouseClick -= AllControlsMouseClick;
+            foreach (System.Windows.Forms.Control ctl in controlToUnhook.Controls) {
+                UnhookControl(ctl);
+            }
+        }
+
+        void AllControlsMouseClick(object sender, MouseEventArgs e) {
+            Console.WriteLine("AllControlsMouseClick:" + sender.ToString());
+            _TimerFlashWindow.Stop();
+        }
 
     }
 }

@@ -73,13 +73,11 @@ namespace Client
             // 
             // txtbox_receiver
             // 
-            this.txtbox_receiver.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
             this.txtbox_receiver.BackColor = System.Drawing.SystemColors.Window;
             this.txtbox_receiver.Location = new System.Drawing.Point(82, 4);
             this.txtbox_receiver.Name = "txtbox_receiver";
             this.txtbox_receiver.ReadOnly = true;
-            this.txtbox_receiver.Size = new System.Drawing.Size(256, 21);
+            this.txtbox_receiver.Size = new System.Drawing.Size(259, 21);
             this.txtbox_receiver.TabIndex = 7;
             this.txtbox_receiver.MouseLeave += new System.EventHandler(this.txtbox_receiver_MouseLeave);
             this.txtbox_receiver.MouseEnter += new System.EventHandler(this.txtbox_receiver_MouseEnter);

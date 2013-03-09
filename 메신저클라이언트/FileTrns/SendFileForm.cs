@@ -5,11 +5,14 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using System.Collections;
 
 namespace Client
 {
     public partial class SendFileForm : Form
     {
+        private Hashtable htReceiverTable = new Hashtable();
+
         public SendFileForm()
         {
             InitializeComponent();
@@ -48,6 +51,8 @@ namespace Client
         {
             btn_selectfile.Enabled = false;
         }
+
+
 
         public void DisplayInit()
         {

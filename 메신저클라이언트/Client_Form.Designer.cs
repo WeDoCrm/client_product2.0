@@ -181,6 +181,7 @@ namespace Client
             this.StripMn_gchat.Name = "StripMn_gchat";
             this.StripMn_gchat.Size = new System.Drawing.Size(162, 22);
             this.StripMn_gchat.Text = "그룹 대화하기";
+            this.StripMn_gchat.Visible = false;
             this.StripMn_gchat.Click += new System.EventHandler(this.chat_Click);
             // 
             // StripMn_gmemo
@@ -1149,13 +1150,13 @@ namespace Client
             // 
             this.StripMn_cchat.Enabled = false;
             this.StripMn_cchat.Name = "StripMn_cchat";
-            this.StripMn_cchat.Size = new System.Drawing.Size(152, 22);
+            this.StripMn_cchat.Size = new System.Drawing.Size(134, 22);
             this.StripMn_cchat.Text = "대화하기";
             // 
             // StripMn_cmemo
             // 
             this.StripMn_cmemo.Name = "StripMn_cmemo";
-            this.StripMn_cmemo.Size = new System.Drawing.Size(152, 22);
+            this.StripMn_cmemo.Size = new System.Drawing.Size(134, 22);
             this.StripMn_cmemo.Text = "쪽지보내기";
             this.StripMn_cmemo.Click += new System.EventHandler(this.StripMn_memo_Click);
             // 
@@ -1163,7 +1164,7 @@ namespace Client
             // 
             this.StripMn_cfile.Enabled = false;
             this.StripMn_cfile.Name = "StripMn_cfile";
-            this.StripMn_cfile.Size = new System.Drawing.Size(152, 22);
+            this.StripMn_cfile.Size = new System.Drawing.Size(134, 22);
             this.StripMn_cfile.Text = "파일보내기";
             // 
             // Client_Form

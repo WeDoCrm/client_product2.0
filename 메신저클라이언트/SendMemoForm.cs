@@ -22,16 +22,16 @@ namespace Client
 
         private void SendMemoForm_SizeChanged(object sender, EventArgs e)
         {
-            int rightgap = this.Width - 361;
+            //int rightgap = this.Width - 361;
 
-            txtbox_receiver.Width = rightgap + 276;
-            textBox1.Width = rightgap + 344;
+            //txtbox_receiver.Width = rightgap + 276;
+            //textBox1.Width = rightgap + 344;
 
-            int heightgap = this.Height - 254;
-            textBox1.Height = heightgap + 154;
+            //int heightgap = this.Height - 254;
+            //textBox1.Height = heightgap + 154;
 
-            BtnSend.SetBounds(BtnSend.Left, 186 + heightgap, BtnSend.Width, BtnSend.Height);
-            BtnSend.SetBounds(136 + (rightgap/2), BtnSend.Top, BtnSend.Width, BtnSend.Height);
+            //BtnSend.SetBounds(BtnSend.Left, 186 + heightgap, BtnSend.Width, BtnSend.Height);
+            //BtnSend.SetBounds(136 + (rightgap/2), BtnSend.Top, BtnSend.Width, BtnSend.Height);
         }
 
         private void txtbox_receiver_MouseEnter(object sender, EventArgs e)

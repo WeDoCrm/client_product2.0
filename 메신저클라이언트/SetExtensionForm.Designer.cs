@@ -50,7 +50,6 @@
             this.tbx_extension.Name = "tbx_extension";
             this.tbx_extension.Size = new System.Drawing.Size(100, 21);
             this.tbx_extension.TabIndex = 1;
-            this.tbx_extension.TextChanged += new System.EventHandler(this.tbx_extension_TextChanged);
             // 
             // btn_ext_confirm
             // 

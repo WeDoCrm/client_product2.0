@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using Client.Common;
 
 namespace Client
 {
@@ -14,15 +15,16 @@ namespace Client
         public bool curListOnly = false;
         public bool multipleSelect = true;
 
-        public AddMemberForm()
-        {
+        public AddMemberForm() {
             InitializeComponent();
         }
 
         public AddMemberForm(bool curListOnly, string formKey) {
+            
             InitializeComponent();
             this.curListOnly = curListOnly;
             this.formkey.Text = formKey;
+
             if (curListOnly) {
                 this.radiobt_all.Enabled = false;
                 this.radiobt_g.Enabled = false;
@@ -31,12 +33,13 @@ namespace Client
             }
         }
 
-        public AddMemberForm(bool curListOnly, string formKey, bool multipleSelect)
-        {
+        public AddMemberForm(bool curListOnly, string formKey, bool multipleSelect) {
+        
             InitializeComponent();
             this.curListOnly = curListOnly;
             this.formkey.Text = formKey;
             this.multipleSelect = multipleSelect;
+        
             if (curListOnly) {
                 this.radiobt_all.Enabled = false;
                 this.radiobt_g.Enabled = false;
@@ -46,10 +49,10 @@ namespace Client
         }
 
         #region 컨트롤이벤트처리
-        private void BtnAdd_Click(object sender, EventArgs e)
-        {
-            if (CurrInListBox.SelectedItems.Count != 0)
-            {
+        private void BtnAdd_Click(object sender, EventArgs e) {
+        
+            if (CurrInListBox.SelectedItems.Count != 0) {
+            
                 ArrayList list = new ArrayList();
                 ListBox.SelectedObjectCollection collection=CurrInListBox.SelectedItems;
 
@@ -57,47 +60,43 @@ namespace Client
                     MessageBox.Show("사용자선택은 1명만 가능합니다.", "선택초과", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
-                foreach (string member in collection)
-                {
-                    if (AddListBox.Items.Contains(member))
-                    {
+            
+                foreach (ListBoxItem member in collection) {
+                
+                    if (ListBox.NoMatches != AddListBox.FindStringExact(member.Text)) {
                         MessageBox.Show("이미 선택된 사용자 입니다.", "중복선택", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
+                    } else {
                         AddListBox.Items.Add(member);
                         list.Add(member);
                     }
                 }
-                foreach (object obj in list)
-                {
-                    string item = obj.ToString();
-                    CurrInListBox.Items.Remove(item);
+
+                foreach (ListBoxItem obj in list) {
+                    CurrInListBox.Items.Remove(obj);
                 }
             }
         }
 
-        private void Btnback_Click(object sender, EventArgs e)
-        {
+        private void Btnback_Click(object sender, EventArgs e) {
+        
             ArrayList list = new ArrayList();
-            if (AddListBox.SelectedItems.Count != 0)
-            {
-                for (int i = 0; i < AddListBox.SelectedItems.Count; i++)
-                {
-                    list.Add(AddListBox.SelectedItems[i]);
+            if (AddListBox.SelectedItems.Count != 0) {
+            
+                foreach (ListBoxItem item in AddListBox.SelectedItems) {
+                    list.Add(item);
                 }
-                foreach (object obj in list)
-                {
-                    string item = obj.ToString();
-                    CurrInListBox.Items.Add(item);
-                    AddListBox.Items.Remove(item);
+
+                foreach (ListBoxItem obj in list) {
+                    CurrInListBox.Items.Add(obj);
+                    AddListBox.Items.Remove(obj);
                 }
             }
         }
 
-        private void BtnCancel_MouseClick(object sender, MouseEventArgs e)
-        {
+        private void BtnCancel_MouseClick(object sender, MouseEventArgs e) {
+            
             Close();
+        
         }
 
         #endregion
@@ -105,32 +104,44 @@ namespace Client
         public void SetAddListBox(TreeNodeCollection collection) {
             if (collection != null && collection.Count > 0 ) {
                 foreach (TreeNode node in collection) {
-                    if (node.Text.Length != 0) {
-                        AddListBox.Items.Add(node.Text);
+                    UserObject userObj = (UserObject)node.Tag;
+                    if (userObj == null || userObj.Id == "")
+                        continue;
+                    AddListBox.Items.Add(new ListBoxItem(userObj));
+                }
+            }
+        }
+
+        public void SetAddListBox(Object[] strArray, TreeNodeCollection collection) {
+
+            if (strArray != null && strArray.Length > 0) {
+
+                foreach (string str in strArray) {
+                    if (str.Length > 0) {
+                        string[] array = str.Split('(');
+                        string[] array1 = array[1].Split(')');
+                        string userId = array1[0];
+
+
+                        UserObject userObj = ChatUtils.FindUserObjectTagFromTreeNodes(collection, userId);
+
+                        ListBoxItem item = new ListBoxItem(userObj);
+                        
+                        AddListBox.Items.Add(item);
                     }
                 }
             }
         }
 
-        public void SetAddListBox(Object[] strArray) {
-            if (strArray != null && strArray.Length > 0 ) {
-                foreach (string str in strArray) {
-                    if (str.Length > 2) {
-                        AddListBox.Items.Add(str);
-                    }
-                }
-            }
-        }
-        public void SetCurrInListBox(Hashtable table, Hashtable MemberInfoList) {
+        public void SetCurrInListBox(Hashtable table, TreeNodeCollection collection) {
             if (table != null && table.Count != 0) {
                 foreach (DictionaryEntry de in table) {
                     
                     if (de.Value != null)  {
+                        UserObject userObj = ChatUtils.FindUserObjectTagFromTreeNodes(collection, de.Key.ToString());
 
-                        string name = (string)MemberInfoList[de.Key.ToString()];
-                        string item = name + "(" + de.Key.ToString() + ")";
-
-                        if (!AddListBox.Items.Contains(item)) {
+                        ListBoxItem item = new ListBoxItem(userObj);
+                        if (ListBox.NoMatches == AddListBox.FindStringExact(item.Text)) {
                             CurrInListBox.Items.Add(item);
                         }
                     }

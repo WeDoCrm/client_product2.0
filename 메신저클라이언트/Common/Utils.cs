@@ -16,6 +16,7 @@ namespace Client
         /// </summary>
         /// <param name="tag"></param>
         /// <returns></returns>
+        [Obsolete("Not used anymore", false)]
         public static string GetIdFromNodeTag(string tag)
         {
             string[] tempArr = tag.Split(':');
@@ -34,26 +35,38 @@ namespace Client
         /// </summary>
         /// <param name="Nodes"></param>
         /// <returns></returns>
-        public static string[] GetLoggedInIdFromNodeTag(TreeNodeCollection Nodes)
+        public static string[] GetLoggedInIdFromNodeTag(TreeNodeCollection nodes)
         {
             List<string> chatterList = new List<string>();
-            
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                if (!((string)Nodes[i].Tag).Contains(CommonDef.CHAT_USER_LOG_OUT))
-                {
-                    chatterList.Add(ChatUtils.GetIdFromNodeTag((string)Nodes[i].Tag));
+
+            for (int i = 0; i < nodes.Count; i++) {
+                UserObject userObj = (UserObject)nodes[i].Tag;
+
+                if (userObj == null)
+                    continue;
+                if (userObj.Status != MsgrUserStatus.LOGOUT) {
+                    chatterList.Add(userObj.Id);
                 }
             }
-            return chatterList.ToArray();
 
+            //tag에 사람이름을 사용하는 경우
+            //for (int i = 0; i < Nodes.Count; i++)
+            //{
+            //    if (!((string)Nodes[i].Tag).Contains(CommonDef.CHAT_USER_LOG_OUT))
+            //    {
+            //        chatterList.Add(ChatUtils.GetIdFromNodeTag((string)Nodes[i].Tag));
+            //    }
+            //}
+            return chatterList.ToArray();
         }
 
+        [Obsolete("Not used anymore", false)]
         public static string TagAsLoggedInId(string id)
         {
             return (id + CommonDef.CHAT_USER_LOG_IN);
         }
 
+        [Obsolete("Not used anymore", false)]
         public static string TagAsLoggedOutId(string id)
         {
             return (id + CommonDef.CHAT_USER_LOG_OUT);
@@ -96,6 +109,21 @@ namespace Client
             return null;
 
         }
+
+        public static UserObject FindUserObjectTagFromTreeNodes(TreeNodeCollection nodeCollection, string findId) {
+            TreeNode[] nodes = nodeCollection.Find(findId, true);
+
+            foreach (TreeNode node in nodes) {
+                UserObject userObj = (UserObject)node.Tag;
+                if (userObj == null)
+                    continue;
+                if (userObj.Id == findId) {
+                    return userObj;
+                }
+            }
+            return null;
+        }
+
 
         /// <summary>
         /// 자기 id를 앞으로 해서 formkey 생성 : myid/id1/id2...
@@ -273,6 +301,15 @@ namespace Client
             return (NoticeListForm)parent;
         }
 
+        public static SendMemoForm GetParentSendMemoForm(Control ctrl) {
+            Control parent = ctrl.Parent;
+
+            while (!(parent is SendMemoForm)) {
+                parent = parent.Parent;
+            }
+            return (SendMemoForm)parent;
+        }
+        
         public static Hashtable GetMember(Hashtable treeSource, string teamname)
         {
             Hashtable memTable = new Hashtable();
@@ -458,6 +495,37 @@ namespace Client
         public const string ONLINE = "online";
         public const string DND = "DND";//다른용무중
     }
+
+    public class MsgColor {
+        private Color MYCOLOR = SystemColors.WindowText;
+        private Color USERCOLOR_1 = Color.RoyalBlue;
+        private Color USERCOLOR_2 = Color.SaddleBrown;
+        private Color USERCOLOR_3 = Color.DarkGreen;
+        private Color USERCOLOR_4 = Color.Purple;
+        private Color USERCOLOR_5 = Color.DodgerBlue;
+        private Color USERCOLOR_6 = Color.Olive;
+        private Color USERCOLOR_DEFAULT = SystemColors.WindowText;
+        public Color GetColor(int userIndex) {
+            switch (userIndex) {
+                case 1:
+                    return USERCOLOR_1;
+                case 2:
+                    return USERCOLOR_2;
+                case 3:
+                    return USERCOLOR_3;
+                case 4:
+                    return USERCOLOR_4;
+                case 5:
+                    return USERCOLOR_5;
+                case 6:
+                    return USERCOLOR_6;
+                default:
+                    return USERCOLOR_DEFAULT;
+            }
+        }
+
+    }
+
     //public class Logger
     //{
     //    //public void logWrite(string clog)

@@ -321,9 +321,10 @@
             this.ReBox.Multiline = true;
             this.ReBox.Name = "ReBox";
             this.ReBox.Size = new System.Drawing.Size(277, 52);
-            this.ReBox.TabIndex = 16;
-            this.ReBox.TextChanged += new System.EventHandler(this.ReBox_TextChanged_1);
+            this.ReBox.TabIndex = 0;
+            this.ReBox.TextChanged += new System.EventHandler(this.ReBox_TextChanged);
             this.ReBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.ReBox_KeyUp);
+            this.ReBox.MouseEnter += new System.EventHandler(this.ReBox_MouseEnter);
             // 
             // btnSend
             // 
@@ -339,12 +340,13 @@
             // 
             // label_font
             // 
+            this.label_font.AutoSize = true;
             this.label_font.BackColor = System.Drawing.Color.Transparent;
-            this.label_font.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label_font.Font = new System.Drawing.Font("굴림", 9F);
             this.label_font.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.label_font.Location = new System.Drawing.Point(9, 5);
+            this.label_font.Location = new System.Drawing.Point(12, 9);
             this.label_font.Name = "label_font";
-            this.label_font.Size = new System.Drawing.Size(60, 17);
+            this.label_font.Size = new System.Drawing.Size(53, 12);
             this.label_font.TabIndex = 17;
             this.label_font.Text = "글꼴설정";
             this.label_font.Click += new System.EventHandler(this.label_font_Click);
@@ -362,10 +364,11 @@
             // 
             // label1
             // 
+            this.label1.AutoSize = true;
             this.label1.BackColor = System.Drawing.Color.Transparent;
             this.label1.Font = new System.Drawing.Font("굴림", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.label1.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.label1.Location = new System.Drawing.Point(192, 9);
+            this.label1.Location = new System.Drawing.Point(181, 9);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
             this.label1.TabIndex = 15;
@@ -413,6 +416,10 @@
             this.MinimumSize = new System.Drawing.Size(360, 550);
             this.Name = "ChatForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.Deactivate += new System.EventHandler(this.ChatForm_Deactivate);
+            this.Shown += new System.EventHandler(this.ChatForm_Shown);
+            this.Activated += new System.EventHandler(this.ChatForm_Activated);
+            this.Enter += new System.EventHandler(this.ChatForm_Enter);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ChatForm_KeyDown);
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
