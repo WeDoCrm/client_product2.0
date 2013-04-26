@@ -309,7 +309,16 @@ namespace Client
             }
             return (SendMemoForm)parent;
         }
-        
+
+        public static SendFileForm GetParentSendFileForm(Control ctrl) {
+            Control parent = ctrl.Parent;
+
+            while (!(parent is SendFileForm)) {
+                parent = parent.Parent;
+            }
+            return (SendFileForm)parent;
+        }
+
         public static Hashtable GetMember(Hashtable treeSource, string teamname)
         {
             Hashtable memTable = new Hashtable();

@@ -61,6 +61,8 @@
         public const string REQ_UNRECEIVED_FILE = "10|"; //안받은 파일 요청
         public const string REQ_UNREAD_NOTICE = "11|"; //안읽은 공지 요청(11|id)
         public const string REQ_UNREAD_TRANSFERED = "23|";//안읽은 이관 요청
+
+        public const string UNDEFINED_TEAM = "미지정"; //admin이나 부서가 지정되지 않은 경우
     }
 
     public class SocketDef

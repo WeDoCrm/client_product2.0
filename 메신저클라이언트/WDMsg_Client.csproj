@@ -177,6 +177,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Compile Include="Common\UserDef.cs" />
+    <Compile Include="Crm\CustomerScheduler.cs" />
     <Compile Include="Etc\AboutForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -141,6 +141,7 @@ namespace Client
             this.StripMn_cchat = new System.Windows.Forms.ToolStripMenuItem();
             this.StripMn_cmemo = new System.Windows.Forms.ToolStripMenuItem();
             this.StripMn_cfile = new System.Windows.Forms.ToolStripMenuItem();
+            this.BGWorkerCustomerScheduler = new System.ComponentModel.BackgroundWorker();
             this.mouseMenuG.SuspendLayout();
             this.mouseMenuN.SuspendLayout();
             this.default_panal.SuspendLayout();
@@ -181,7 +182,6 @@ namespace Client
             this.StripMn_gchat.Name = "StripMn_gchat";
             this.StripMn_gchat.Size = new System.Drawing.Size(162, 22);
             this.StripMn_gchat.Text = "그룹 대화하기";
-            this.StripMn_gchat.Visible = false;
             this.StripMn_gchat.Click += new System.EventHandler(this.chat_Click);
             // 
             // StripMn_gmemo
@@ -193,9 +193,11 @@ namespace Client
             // 
             // StripMn_gfile
             // 
+            this.StripMn_gfile.Enabled = false;
             this.StripMn_gfile.Name = "StripMn_gfile";
             this.StripMn_gfile.Size = new System.Drawing.Size(162, 22);
             this.StripMn_gfile.Text = "그룹 파일보내기";
+            this.StripMn_gfile.Visible = false;
             this.StripMn_gfile.Click += new System.EventHandler(this.StripMn_gfile_Click);
             // 
             // imageList
@@ -1311,6 +1313,7 @@ namespace Client
         private ToolStripMenuItem StripMn_cchat;
         private ToolStripMenuItem StripMn_cmemo;
         private ToolStripMenuItem StripMn_cfile;
+        private System.ComponentModel.BackgroundWorker BGWorkerCustomerScheduler;
  
     }
 }

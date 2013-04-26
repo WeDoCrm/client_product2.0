@@ -16,6 +16,7 @@ using CRMmanager;
 using Microsoft.Win32;
 using Elegant.Ui.Samples.ControlsSample.Sockets;
 using Client.Common;
+using System.Collections.Generic;
 
 
 namespace Client
@@ -700,7 +701,6 @@ namespace Client
                                 }
                                 else
                                 {
-                                    logWrite("체크!");
                                     //로그인 시도중인 상황에서 서버응답 성공시
                                     if (serverAlive == false)
                                     {
@@ -2115,6 +2115,7 @@ namespace Client
                         
                             ArrayList list = new ArrayList();
                             if (tempMsg.Length > 2) {
+                                string teamName = tempMsg[1];
 
                                 for (int i = 2; i < tempMsg.Length; i++) {//배열 순서 2번째 부터인 id!name을 추출
                                 
@@ -2124,18 +2125,23 @@ namespace Client
                                         string[] memInfo = tempMsg[i].Split('!');  //<id>와 <name>을 분리하여 memInfo에 저장
                                         MemberInfoList[memInfo[0]] = memInfo[1];    //key=id, value=name
                                         logWrite("MemberInfoList[" + memInfo[0] + "] = " + memInfo[1]);
-                                        TeamInfoList[memInfo[0]] = tempMsg[1];      //다른 상담원의 <소속>과 <id>를 hashtable에 저장(key=id, value=소속)
-                                        logWrite("TeamInfoList[" + memInfo[0] + "] = " + tempMsg[1]);
+
+                                        //다른 상담원의 <소속>과 <id>를 hashtable에 저장(key=id, value=소속)
+                                        if (teamName.Trim() == "") { //소속이 미지정인 경우
+                                            teamName = MsgrMsg.UNDEFINED_TEAM;
+                                        }
+                                        TeamInfoList[memInfo[0]] = teamName;
+                                        logWrite("TeamInfoList[" + memInfo[0] + "] = " + teamName);
                                         //logWrite("사용자 정보 등록 : 이름(" + memInfo[1] + ") 아이디(" + memInfo[0] + ")");
                                     }
                                 }
                                 ChildNodeDelegate AddMemNode = new ChildNodeDelegate(MakeMemTree);
-                                object[] ar = { tempMsg[1], list };
+                                object[] ar = { teamName, list };
                                 Invoke(AddMemNode, ar);
 
-                                treesource[tempMsg[1]] = list;
+                                treesource[teamName] = list;
                                 memTree.Tag = treesource;
-                                logWrite(tempMsg[1] + " 팀 리스트 생성!");
+                                logWrite(teamName + " 팀 리스트 생성!");
 
                                 //델리게이트 생성
                             }
@@ -4722,15 +4728,12 @@ namespace Client
             string info = "8|" + this.myid + "|" + this.mypass + "|" + this.extension + "|" + local.ToString();
             SendMsg(info, server);
 
-            //setConfigXml(Application.StartupPath + "\\WDMsg_Client_Demo.exe.config", "id", this.myid);
-            setConfigXml(AppConfigFullPath, "id", this.myid);
-            //setConfigXml(Application.StartupPath + "\\WDMsg_Client_Demo.exe.config", "extension", this.extension);
+            //Application.StartupPath + "\\WDMsg_Client_Demo.exe.config"
+            setConfigXml(AppConfigFullPath, "id", this.myid); 
             setConfigXml(AppConfigFullPath, "extension", this.extension);
             if (cbx_pass_save.Checked == true)
             {
-                //setConfigXml(Application.StartupPath + "\\WDMsg_Client_Demo.exe.config", "pass", this.mypass);
-                setConfigXml(AppConfigFullPath, "pass", this.mypass);
-                //setConfigXml(Application.StartupPath + "\\WDMsg_Client_Demo.exe.config", "save_pass", "1");
+                setConfigXml(AppConfigFullPath, "pass", this.mypass);  
                 setConfigXml(AppConfigFullPath, "save_pass", "1");
             }
         }
@@ -4779,20 +4782,16 @@ namespace Client
 
         private void MnDialog_Click(object sender, EventArgs e)
         {
-            if (memTree.SelectedNode.GetNodeCount(true) != 0) return; //팀원 노드 선택
+            try {
+                if (memTree.SelectedNode.GetNodeCount(true) != 0)
+                    return; //팀원 노드 선택
 
-            UserObject userObj = (UserObject)memTree.SelectedNode.Tag;
-            string userId = userObj.Id;
-            string userName = userObj.Name;//GetUserName(userId);
+                UserObject userObj = (UserObject)memTree.SelectedNode.Tag;
+                logWrite("대화선택:" + userObj.Id);
 
-            logWrite(userObj.Id);
-
-            ChatForm chatForm = ChatUtils.FindChatForm(ChatFormList, userObj.Id);
-            //존재하는 대화창이 없는 경우 생성
-            if (chatForm == null) {
-                MakeChatForm(userObj.Name, userObj.Id);
-            } else {
-                chatForm.SetForward();
+                OpenSingleChatForm(userObj);
+            } catch (Exception ex) {
+                logWrite(ex.ToString());
             }
         }
 
@@ -4833,33 +4832,10 @@ namespace Client
                 if (memTree.SelectedNode.GetNodeCount(true) == 0) { //팀원 노드 선택
                     
                     UserObject userObj = (UserObject)e.Node.Tag;
-                    string userId = userObj.Id;
-                    string userName = userObj.Name;//GetUserName(userId);
                   
-                    logWrite(userId);
-                    
-                    if (InList.ContainsKey(userId) && InList[userId] != null) {
+                    logWrite("대화선택:"+userObj.Id);
 
-                        ChatForm chatForm = ChatUtils.FindChatForm(ChatFormList, userId);
-                        //존재하는 대화창이 없는 경우 생성
-                        if (chatForm == null) {
-                            MakeChatForm(userName, userId);
-                        } else {
-                            chatForm.SetForward();
-                        }
-                    } else { //대화가능한 상대방이 없을경우
-                        DialogResult result =
-                            MessageBox.Show(this, "대화할 상대방이 대화가 불가능한 상태입니다.\r\n 대신 쪽지를 보내시겠습니까?", 
-                                            "알림", 
-                                            MessageBoxButtons.OKCancel, 
-                                            MessageBoxIcon.Information);
-                        
-                        if (result == DialogResult.OK) {
-                            Hashtable MemoReceiver = new Hashtable();
-                            MemoReceiver[userName] = userId;
-                            MakeSendMemo(MemoReceiver);
-                        }
-                    }
+                    OpenSingleChatForm(userObj);
                 }
             } catch (Exception exception) {
                 logWrite(exception.ToString());
@@ -4875,90 +4851,84 @@ namespace Client
         {
             try
             {
-                if (memTree.SelectedNode.Level == 0) //상담원전체를 나타내는 노드를 선택한 견우 
-                {
-                    MessageBox.Show(this, "그룹 전체와는 대화할수 없습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else if (memTree.SelectedNode.GetNodeCount(false) != 0)//선택한 노드가 하위 노드를 가지고 있을 경우
+                //if (memTree.SelectedNode.Level == 0) //상담원전체를 나타내는 노드를 선택한 견우 
+                //{
+                //    MessageBox.Show(this, "그룹 전체와는 대화할수 없습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //}
+                //else 
+                if (memTree.SelectedNode.GetNodeCount(false) != 0)//선택한 노드가 하위 노드를 가지고 있을 경우
                 {
                     logWrite("그룹대화 요청!");
-                    string chattersName = null;                    //대화자 이름 문자열
-                    string chattersid = this.myid + "/";           //대화가능자 아이디 문자열
-                    ArrayList unchatters = new ArrayList();                      //대화불가능자 아이디 문자열
-                    int chatable = 0;
-                    for (int i = 0; i < memTree.SelectedNode.GetNodeCount(false); i++)
-                    {
-                        UserObject userObj = (UserObject)memTree.SelectedNode.Nodes[i].Tag;
-                        string chatterid = userObj.Id;
+                    List<UserObject> groupList = new List<UserObject>();                      //대화불가능자 아이디 문자열
+                    int chattable = 0;
+                    string chatIdList = myid;
 
-                        if (InList.ContainsKey(chatterid) && InList[chatterid] != null)
-                        {
-                            chatable++;
-
-                            chattersName += userObj.Name + "/";
-
-                            chattersid += chatterid + "/";
+                    foreach (TreeNode node in memTree.SelectedNode.Nodes) {
+                        UserObject userObj = (UserObject)node.Tag;
+                        if (userObj == null)
+                            continue;
+                        if (userObj.Status != MsgrUserStatus.LOGOUT) {
+                            chattable++;
+                            chatIdList = "/" + userObj.Id;
                         }
-                        else
-                        {
-                            unchatters.Add(userObj.Name);
-                        }
+                        groupList.Add(userObj);
                     }
 
-                    if (chatable == 0) //대화가능한 상대방이 없을경우
+                    if (chattable == 0) //대화가능한 상대방이 없을경우
                     {
                         DialogResult result = MessageBox.Show(this, "요청한 상대방 모두가 대화가 불가능한 상태입니다.\r\n 대신 쪽지를 보내시겠습니까?", "알림", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
                         if (result == DialogResult.OK)
                         {
                             Hashtable MemoReceiver = new Hashtable();
-                            for (int i = 0; i < memTree.SelectedNode.GetNodeCount(false); i++)
+                            foreach (TreeNode node in memTree.SelectedNode.Nodes)
                             {
-                                UserObject userObj = (UserObject)memTree.SelectedNode.Nodes[i].Tag;
+                                UserObject userObj = (UserObject)node.Tag;
+                                if (userObj == null)
+                                    continue;
                                 MemoReceiver[userObj.Id] = userObj.Name;
                             }
                             MakeSendMemo(MemoReceiver);//쪽지보내기
                         }
-                    }
-                    else MakeChatForm(chattersName, unchatters, chattersid);
+                    } else if (chattable == 1) {
+                        UserObject userObj = (UserObject)groupList[0];
+                        logWrite("대화선택:" + userObj.Id);
+                        OpenSingleChatForm(userObj);
+                    } else
+                        MakeChatForm(groupList, chatIdList);
                 }
                 else //선택한 노드가 최하위 노드인 경우
                 {
                     logWrite("일대일대화 요청");
                     UserObject userObj = (UserObject)memTree.SelectedNode.Tag;
-
-                    if (userObj != null && InList.ContainsKey(userObj.Id) && InList[userObj.Id] != null)
-                    {
-                        string userId = userObj.Id;
-                        string userName = userObj.Name;
-
-                        ChatForm chatForm = ChatUtils.FindChatForm(ChatFormList, userId);
-                        //존재하는 대화창이 없는 경우 생성
-                        if (chatForm == null) {
-                            MakeChatForm(userName, userId);
-                        } else {
-                            chatForm.SetForward();
-                        }
-
-
-                    }
-                    else  //대화가능한 상대방이 없을경우
-                    {
-                        DialogResult result = MessageBox.Show(this, "대화할 상대방이 대화가 불가능한 상태입니다.\r\n 대신 쪽지를 보내시겠습니까?", "알림", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-                        if (result == DialogResult.OK)
-                        {
-                            Hashtable MemoReceiver = new Hashtable();
-                            string chatterid = userObj.Id;
-                            MemoReceiver[chatterid] = GetUserName(chatterid);
-                            MakeSendMemo(MemoReceiver);
-                        }
-
-                    }
+                    OpenSingleChatForm(userObj);
                 }
             }
             catch (Exception exception)
             {
                 logWrite(exception.ToString());
             }
+        }
+
+        public void OpenSingleChatForm(UserObject userObj) {
+            if (userObj != null && InList.ContainsKey(userObj.Id) && InList[userObj.Id] != null) {
+                ChatForm chatForm = ChatUtils.FindChatForm(ChatFormList, userObj.Id);
+                //존재하는 대화창이 없는 경우 생성
+                if (chatForm == null) {
+                    MakeChatForm(userObj);
+                } else {
+                    chatForm.SetForward();
+                }
+
+            } else  //대화가능한 상대방이 없을경우
+                    {
+                DialogResult result = MessageBox.Show(this, "대화할 상대방이 대화가 불가능한 상태입니다.\r\n 대신 쪽지를 보내시겠습니까?", "알림", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
+                if (result == DialogResult.OK) {
+                    Hashtable MemoReceiver = new Hashtable();
+                    MemoReceiver[userObj.Id] = userObj.Name;
+                    MakeSendMemo(MemoReceiver);
+                }
+            }
+
         }
 
         /// <summary>
@@ -5062,9 +5032,9 @@ namespace Client
                     TreeNodeCollection col = view.Nodes;
                     foreach (TreeNode node in col)
                     {
-                        string[] ar1 = node.Text.Split('(');
-                        string[] ar2 = ar1[1].Split(')');
-                        list[ar2[0]] = ar1[0]; //key=id, value=name 인 값 목록
+                        UserObject userObj = (UserObject)node.Tag;
+                        if (userObj.Status != MsgrUserStatus.LOGOUT)
+                            list[userObj.Id] = userObj.Name;//key=id, value=name 인 값 목록
                     }
                 }
                 MakeSendFileForm(list);
@@ -5080,17 +5050,17 @@ namespace Client
         /// </summary>
         /// <param name="chatter"></param>
         /// <param name="ids"></param>
-        private void MakeChatForm(string userName, string userId) {
+        private void MakeChatForm(UserObject userObj) {
         
             try {
-                if (userId == null || userId == "") return;
+                if (userObj.Id == null || userObj.Id == "")
+                    return;
                 ChatForm chatForm = new ChatForm(myid);
 
                 chatForm.SetCustomFont(custom_color, custom_font);
-                chatForm.SetFormKey(ChatUtils.GetFormKey(userId,this.myid)); //DateTime.Now.ToString() +"!"+ this.myid;
+                chatForm.SetFormKey(ChatUtils.GetFormKey(userObj.Id, this.myid)); //DateTime.Now.ToString() +"!"+ this.myid;
                 ChatFormList[chatForm.GetFormKey()] = chatForm;
 
-                UserObject userObj = ChatUtils.FindUserObjectTagFromTreeNodes(memTree.Nodes, userId);
                 chatForm.SetChatterOnFormOpening(userObj);//대화창에 참가자 노드 추가(key=id, text=name)
                 logWrite("Formkey 생성 : <" + chatForm.GetFormKey() + ">");
                 
@@ -5172,15 +5142,12 @@ namespace Client
 
         private void saveFontColor(Color color, Font font)
         {
-            try
-            {
+            try {
                 string c_color = color.Name;
                 string c_font = font.ToHfont().ToInt32().ToString();
                 setConfigXml(AppConfigFullPath, "custom_color", c_color);
                 setConfigXml(AppConfigFullPath, "custom_font", c_font);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 logWrite("saveFontColor Error : " + ex.ToString());
             }
         }
@@ -5191,30 +5158,20 @@ namespace Client
         /// <param name="chattersName">대화가능한 상대방의 이름열</param>
         /// <param name="nonchatters">대화불가능한 상대방의 이름열</param>
         /// <param name="ids">대화가능자의 id</param>
-        private void MakeChatForm(string chattersName, ArrayList nonchatters, string ids)
+        private void MakeChatForm(List<UserObject> groupList, string chatIdList)
         {
-            try
-            {
+            try {
                 ChatForm chatForm = new ChatForm(myid);
 
                 chatForm.SetCustomFont(custom_color, custom_font);
-                chatForm.SetFormKey(ChatUtils.GetFormKey(ids, this.myid));//DateTime.Now.ToString() + this.myid;
+                chatForm.SetFormKey(ChatUtils.GetFormKey(chatIdList, this.myid));//DateTime.Now.ToString() + this.myid;
                 logWrite("Formkey 생성 : " + chatForm.GetFormKey());
 
-                string[] tempidar = ids.Split('/');
-
-                foreach (string tempId in tempidar) {
-                    if (!tempId.Equals(this.myid)) {
-                        UserObject userObj = ChatUtils.FindUserObjectTagFromTreeNodes(memTree.Nodes, tempId);
+                foreach (UserObject userObj in groupList) {
+                    if (userObj.Status != MsgrUserStatus.LOGOUT) {
                         chatForm.SetChatterOnFormOpening(userObj);
-                    }
-                }
-                
-                if (nonchatters.Count != 0)
-                {
-                    foreach (string non in nonchatters)
-                    {
-                        chatForm.PostCanNotJoinMessage(non);
+                    } else {
+                        chatForm.PostCanNotJoinMessage(userObj.Name);
                     }
                 }
 
@@ -5234,6 +5191,7 @@ namespace Client
             {
                 logWrite(exception.ToString());
             }
+
         }
 
         /// <summary>
@@ -5644,21 +5602,19 @@ namespace Client
         }
 
 
-        private void MakeSendMemo(Hashtable MemoReceiver) { //MemoReceiver(key=name, value=id)
+        private void MakeSendMemo(Hashtable MemoReceiver) { //MemoReceiver(key=id, value=name)
         
             try {
                 SendMemoForm form = new SendMemoForm();
-                string Receiver = null;
                 form.formkey.Text = DateTime.Now.ToString();
+
                 if (MemoReceiver.Count != 0) {
                     foreach (DictionaryEntry de in MemoReceiver) {
                         if (de.Value != null) {
-                            Receiver = (String)de.Key + "(" + (String)de.Value + ");";
-                            form.txtbox_receiver.Text += Receiver;
-                            form.receiverIDs.AppendText((String)de.Value + ";");
+                            form.txtbox_receiver.Text += (String)de.Value + "(" + (String)de.Key + ");";
                         }
                     }
-                    logWrite("숨겨진 receiverIDs 리스트 생성 : " + form.receiverIDs.Text);
+                    logWrite("쪽지전송 리스트 생성 : " + form.txtbox_receiver.Text);
                 }
                 form.BtnReceiver.MouseClick += new MouseEventHandler(BtnReceiver_Click);
                 form.BtnSend.MouseClick += new MouseEventHandler(BtnSend_Click);
@@ -5674,73 +5630,45 @@ namespace Client
         private void textBox1_KeyDown(object sender, KeyEventArgs e) {
             try {
                 if (e.KeyCode == Keys.S && e.Modifiers == Keys.Control) {
-                    TextBox send = (TextBox)sender;
-                    bool MemoSendAvailable = false;
-                    TextBox receiverbox=null;
 
-                    for (int i = 0; i < send.Parent.Controls.Count; i++) {
-                        string control = send.Parent.Controls[i].Name;
-                        if (control.Equals("txtbox_receiver")) {
-                            receiverbox = (TextBox)send.Parent.Controls[i];
-                            if (receiverbox.Text.Length != 0) MemoSendAvailable = true;
-                        }
-                    }
+                    SendMemoForm form = (SendMemoForm)ChatUtils.GetParentSendMemoForm((TextBox)sender);
 
-                    if (MemoSendAvailable == true) {
-                        for (int i = 0; i < send.Parent.Controls.Count; i++) {
-                            string control = send.Parent.Controls[i].Name;
-                            if (control.Equals("textBox1")) {
-                                TextBox memoContent = (TextBox)send.Parent.Controls[i];
+                    if (form.txtbox_receiver.Text.Length != 0) {
 
-                                if (memoContent.Text.Length != 0) {
-                                    string msg = "19|" + this.myname + "|" + this.myid + "|" + memoContent.Text.Trim(); //m|name|발신자id|message
-                                    string smsg = "4|" + this.myname + "|" + this.myid + "|" + memoContent.Text.Trim(); //m|name|발신자id|message
-                                    logWrite("쪽지 메시지 생성 : " + msg);
+                        TextBox memoContent = form.textBox1;
 
-                                    string[] tempID = receiverbox.Text.Split(';');
+                        if (memoContent.Text.Length != 0) {
+                            string msg = "19|" + this.myname + "|" + this.myid + "|" + memoContent.Text.Trim(); //m|name|발신자id|message
+                            string smsg = "4|" + this.myname + "|" + this.myid + "|" + memoContent.Text.Trim(); //m|name|발신자id|message
+                            logWrite("쪽지 메시지 생성 : " + msg);
 
-                                    for (int n = 0; n < tempID.Length; n++) {
-                                        if (tempID[n].Length != 0) {
-                                            string[] array = tempID[n].Split('(');
-                                            string[] array1 = array[1].Split(')');
-                                            string reID = array1[0];
-                                            
-                                            if (InList.ContainsKey(reID) && InList[reID] != null)
-                                            {
-                                                SendMsg(msg + "|" + reID, server);
-                                            }
-                                            else
-                                            {
-                                                SendMsg(smsg + "|" + reID, server);
-                                            }
+                            string[] tempID = form.txtbox_receiver.Text.Split(';');
 
-                                            send.Parent.Dispose();
-                                            break;
+                            for (int n = 0; n < tempID.Length; n++) {
+                                if (tempID[n].Length != 0) {
+                                    string[] array = tempID[n].Split('(');
+                                    string[] array1 = array[1].Split(')');
+                                    string reID = array1[0];
 
-                                        }
+                                    if (InList.ContainsKey(reID) && InList[reID] != null) {
+                                        SendMsg(msg + "|" + reID, server);
+                                    } else {
+                                        SendMsg(smsg + "|" + reID, server);
                                     }
+
+                                    form.Dispose();
+                                    break;
+
                                 }
-                                break;
                             }
-                            
                         }
                         
-                    }
-                    else
-                    {
-                        DialogResult result = MessageBox.Show(send.Parent, "쪽지를 받을 상대방을 지정해 주세요", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        if (result == DialogResult.OK)
-                        {
-                            string key = null;
-                            for (int num = 0; num < send.Parent.Controls.Count; num++)
-                            {
-                                if (send.Parent.Controls[num].Name.Equals("formkey"))
-                                {
-                                    Label keylabel = (Label)send.Parent.Controls[num];
-                                    key = keylabel.Text;
-                                    break;
-                                }
-                            }
+                    } else {
+                        DialogResult result = MessageBox.Show(form, "쪽지를 받을 상대방을 지정해 주세요", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        if (result == DialogResult.OK) {
+
+
+                            string key = form.formkey.Text;
                             AddMemoReceiver(key);
                         }
                     }
@@ -6061,20 +5989,31 @@ namespace Client
             }
         }
 
-        private void MnMemo_Click(object sender, EventArgs e)
-        {
-            MakeSendMemo(new Hashtable());
+        private void MnMemo_Click(object sender, EventArgs e) {
+            try {
+                if (memTree.SelectedNode.GetNodeCount(true) != 0)
+                    return; //팀원 노드 선택
+
+                UserObject userObj = (UserObject)memTree.SelectedNode.Tag;
+                logWrite("쪽지선택:" + userObj.Id);
+
+                Hashtable MemoReceiver = new Hashtable();
+                MemoReceiver[userObj.Id] = userObj.Name;
+                MakeSendMemo(MemoReceiver);
+            } catch (Exception ex) {
+                logWrite(ex.ToString());
+            }
+        
         }
 
-        private void BtnReceiver_Click(object sender, MouseEventArgs e)
-        {
-            try
-            {
+        private void BtnReceiver_Click(object sender, MouseEventArgs e) {
+
+            try {
+            
                 SendMemoForm form = (SendMemoForm)ChatUtils.GetParentSendMemoForm((Button)sender);
                 AddMemoReceiver(form.formkey.Text);
-            }
-            catch (Exception exception)
-            {
+            
+            } catch (Exception exception) {
                 logWrite(exception.ToString());
             }
         }
@@ -6083,10 +6022,10 @@ namespace Client
         /// 쪽지쓰기 대상자 추가
         /// </summary>
         /// <param name="formkey"></param>
-        private void AddMemoReceiver(string formkey)
-        {
-            try
-            {
+        private void AddMemoReceiver(string formkey) {
+            
+            try {
+            
                 //전체 선택
                 AddMemberForm addform = new AddMemberForm(false, formkey);
                 addform.BtnConfirm.MouseClick += new MouseEventHandler(BtnConfirmForMemo_Click);
@@ -6105,56 +6044,54 @@ namespace Client
                 addform.SetCurrInListBox(all, this.memTree.Nodes);
 
                 addform.ShowDialog(form);
-            }
-            catch (Exception e)
-            {
+            
+            } catch (Exception e) {
+            
                 logWrite(e.ToString());
+            
             }
         }
 
-        private void CurrInListBox_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            try
-            {
+        private void CurrInListBox_MouseDoubleClick(object sender, MouseEventArgs e) {
+            
+            try {
+            
                 ListBox box = (ListBox)sender;
                 string additem = null;
 
-                if (box.SelectedItems.Count != 0)
-                {
+                if (box.SelectedItems.Count != 0) {
+
                     additem = box.SelectedItem.ToString();
 
                     int count = box.Parent.Controls.Count;
 
-                    for (int i = 0; i < count; i++)
-                    {
-                        if (box.Parent.Controls[i].Name.Equals("AddListBox"))
-                        {
+                    for (int i = 0; i < count; i++) {
+
+                        if (box.Parent.Controls[i].Name.Equals("AddListBox")) {
+
                             ListBox addbox = (ListBox)box.Parent.Controls[i];
 
-                            if (addbox.Items.Contains(additem))
-                            {
+                            if (addbox.Items.Contains(additem)) {
+
                                 MessageBox.Show(this, "이미 선택된 사용자 입니다.", "중복선택", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            }
-                            else
-                            {
+                            
+                            } else {
+
                                 addbox.Items.Add(additem);
                                 box.Items.Remove(additem);
                             }
                         }
                     }
                 }
-            }
-            catch (Exception exception)
-            {
+            } catch (Exception exception) {
                 logWrite(exception.ToString());
             }
         }
 
-        private void BtnConfirmForMemo_Click(object sender, MouseEventArgs e)
-        {
-            try
-            {
-                AddMemberForm addMemberForm = ChatUtils.GetParentAddMemberForm((RadioButton)sender);
+        private void BtnConfirmForMemo_Click(object sender, MouseEventArgs e) {
+
+            try {
+                AddMemberForm addMemberForm = ChatUtils.GetParentAddMemberForm((Button)sender);
 
                 string key = addMemberForm.formkey.Text;
                 SendMemoForm form = (SendMemoForm)MemoFormList[key];
@@ -6162,9 +6099,11 @@ namespace Client
                 ListBox box = addMemberForm.AddListBox;
 
                 if (box.Items.Count != 0) {
+                    
                     if (form.txtbox_receiver.Text.Length != 0) {
                         form.txtbox_receiver.Clear();
                     }
+
                     foreach (ListBoxItem item in box.Items) {
                         UserObject userObj = (UserObject)item.Tag;
                         string str = string.Format("{0}({1})",userObj.Name,userObj.Id);
@@ -6182,89 +6121,50 @@ namespace Client
         }
 
 
-        private void BtnSend_Click(object sender, MouseEventArgs e)
-        {
-            try
-            {
-                Button send = (Button)sender;
-                bool MemoSendAvailable = false;
-                TextBox receiverbox = null;
+        private void BtnSend_Click(object sender, MouseEventArgs e) {
+        
+            try {
 
-                for (int i = 0; i < send.Parent.Controls.Count; i++)
-                {
-                    string control = send.Parent.Controls[i].Name;
-                    if (control.Equals("txtbox_receiver"))
-                    {
-                        receiverbox = (TextBox)send.Parent.Controls[i];
-                        if (receiverbox.Text.Length != 0) MemoSendAvailable = true;
-                    }
-                }
+                SendMemoForm form = (SendMemoForm)ChatUtils.GetParentSendMemoForm((Button)sender);
 
-                if (MemoSendAvailable == true)
-                {
-                    for (int i = 0; i < send.Parent.Controls.Count; i++)
-                    {
-                        string control = send.Parent.Controls[i].Name;
-                        if (control.Equals("textBox1"))
-                        {
-                            TextBox memoContent = (TextBox)send.Parent.Controls[i];
 
-                            if (memoContent.Text.Length != 0)
-                            {
-                                string msg = "19|" + this.myname + "|" + this.myid + "|" + memoContent.Text.Trim(); //m|name|발신자id|message
-                                string smsg = "4|" + this.myname + "|" + this.myid + "|" + memoContent.Text.Trim(); //m|name|발신자id|message
-                                logWrite("쪽지 메시지 생성 : " + msg);
+                if (form.txtbox_receiver.Text.Length != 0) {
+                    TextBox memoContent = form.textBox1;
 
-                                string[] tempID = receiverbox.Text.Split(';');
-                                
-                                for (int n = 0; n < tempID.Length; n++)
-                                {
-                                    if (tempID[n].Length != 0)
-                                    {
-                                        string[] array = tempID[n].Split('(');
-                                        string[] array1 = array[1].Split(')');
-                                        string reID = array1[0];
-                                        logWrite("쪽지 수신자 아이디 : " + reID);
-                                        if (InList.ContainsKey(reID) && InList[reID] != null)
-                                        {
-                                            SendMsg(msg + "|" + reID, server);
-                                        }
-                                        else
-                                        {
-                                            SendMsg(smsg + "|" + reID, server);
-                                        }
-                                    }
+                    if (memoContent.Text.Length != 0) {
+
+                        string msg = "19|" + this.myname + "|" + this.myid + "|" + memoContent.Text.Trim(); //m|name|발신자id|message
+                        string smsg = "4|" + this.myname + "|" + this.myid + "|" + memoContent.Text.Trim(); //m|name|발신자id|message
+                        logWrite("쪽지 메시지 생성 : " + msg);
+
+                        string[] tempID = form.txtbox_receiver.Text.Split(';');
+
+                        for (int n = 0; n < tempID.Length; n++) {
+                            if (tempID[n].Length != 0) {
+                                string[] array = tempID[n].Split('(');
+                                string[] array1 = array[1].Split(')');
+                                string reID = array1[0];
+                                logWrite("쪽지 수신자 아이디 : " + reID);
+                                if (InList.ContainsKey(reID) && InList[reID] != null) {
+                                    SendMsg(msg + "|" + reID, server);
+                                } else {
+                                    SendMsg(smsg + "|" + reID, server);
                                 }
-                                send.Parent.Dispose();
-                                break;
-
-
                             }
-                            break;
                         }
+                        form.Dispose();
                     }
-                }
-                else
-                {
-                    DialogResult result = MessageBox.Show(send.Parent, "쪽지를 받을 상대방을 지정해 주세요", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    if (result == DialogResult.OK)
-                    {
-                        string key = null;
-                        for (int num = 0; num < send.Parent.Controls.Count; num++)
-                        {
-                            if (send.Parent.Controls[num].Name.Equals("formkey"))
-                            {
-                                Label keylabel = (Label)send.Parent.Controls[num];
-                                key = keylabel.Text;
-                                break;
-                            }
-                        }
+
+                } else {
+                    DialogResult result = MessageBox.Show(form, "쪽지를 받을 상대방을 지정해 주세요", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (result == DialogResult.OK) {
+
+                        string key = form.formkey.Text;
+
                         AddMemoReceiver(key);
                     }
                 }
-            }
-            catch (Exception exception)
-            {
+            } catch (Exception exception) {
                 logWrite(exception.ToString());
             }
         }
@@ -6323,20 +6223,7 @@ namespace Client
         {
             try
             {
-                Button button = (Button)sender;
-
-                int count = button.Parent.Controls.Count;
-                string formkey = null;
-
-                for (int i = 0; i < count; i++)
-                {
-                    if (button.Parent.Controls[i].Name.Equals("formkey"))
-                    {
-                        formkey = button.Parent.Controls[i].Text;
-                        break;
-                    }
-                }
-                SendFileForm form = (SendFileForm)FileSendFormList[formkey];
+                SendFileForm form = (SendFileForm)ChatUtils.GetParentSendFileForm((Button)sender);
 
                 ShowFileSelectDialog(form);
             }
@@ -6398,9 +6285,20 @@ namespace Client
 
         private void MnSendFile_Click(object sender, EventArgs e)
         {
-            
-            Hashtable list = new Hashtable();
-            MakeSendFileForm(list);
+            try {
+                if (memTree.SelectedNode.GetNodeCount(true) != 0)
+                    return; //팀원 노드 선택
+
+                UserObject userObj = (UserObject)memTree.SelectedNode.Tag;
+                logWrite("파일전송 선택:" + userObj.Id);
+                Hashtable list = new Hashtable();
+                if (userObj.Status != MsgrUserStatus.LOGOUT) {
+                    list[userObj.Id] = userObj.Name;//key=id, value=name 인 값 목록
+                    MakeSendFileForm(list);
+                }
+            } catch (Exception exception) {
+                logWrite(exception.ToString());
+            }
         }
 
         /// <summary>
@@ -6418,8 +6316,10 @@ namespace Client
                     MessageBox.Show(this, "2명 이상의 사용자에게는 파일을 전송할 수 없습니다.", "사용자선택", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 } else {
                     UserObject userObj = (UserObject)node.Tag;
-                    list[userObj.Id] = userObj.Name;
-                    MakeSendFileForm(list);
+                    if (userObj.Status != MsgrUserStatus.LOGOUT) {
+                        list[userObj.Id] = userObj.Name;
+                        MakeSendFileForm(list);
+                    }
                 }
             } catch (Exception exception) {
                 logWrite(exception.ToString());
@@ -6430,19 +6330,12 @@ namespace Client
         {
             try
             {
-                Label detail = (Label)sender;
-                int num = detail.Parent.Controls.Count;
-                string key = null;
-                for (int i = 0; i < num; i++)
-                {
-                    if ("formkey".Equals(detail.Parent.Controls[i].Name))
-                    {
-                        Label keylabel = (Label)detail.Parent.Controls[i];
-                        key = keylabel.Text;
-                        logWrite("label_detail_Click : formkey(" + key + ")");
-                        break;
-                    }
-                }
+                SendFileForm form = (SendFileForm)ChatUtils.GetParentSendFileForm((Label)sender);
+
+                string key = form.formkey.Text;
+
+                logWrite("label_detail_Click : formkey(" + key + ")");
+
                 FileSendDetailListView view = (FileSendDetailListView)FileSendDetailList[key];
                 view.Show();
             }
@@ -6452,23 +6345,14 @@ namespace Client
             }
         }
 
-        private void btn_receivers_Click(object sender, MouseEventArgs e)
-        {
-            try
-            {
-                Button button = (Button)sender;
-                int num = button.Parent.Controls.Count;
-                string key = null;
-                for (int i = 0; i < num; i++)
-                {
-                    if ("formkey".Equals(button.Parent.Controls[i].Name))
-                    {
-                        Label keylabel = (Label)button.Parent.Controls[i];
-                        key = keylabel.Text;
-                        logWrite("btn_receivers_Click : formkey(" + key + ")");
-                        break;
-                    }
-                }
+        private void btn_receivers_Click(object sender, MouseEventArgs e) {
+        
+            try {
+            
+                SendFileForm form = (SendFileForm)ChatUtils.GetParentSendFileForm((Button)sender);
+
+                string key = form.formkey.Text;
+                logWrite("btn_receivers_Click : formkey(" + key + ")");
                 AddFileReceiver(key);
             }
             catch (Exception exception)
@@ -6477,63 +6361,47 @@ namespace Client
             }
         }
 
-        private void btn_cancel_Click(object sender, MouseEventArgs e)
-        {
-            try
-            {
-                logWrite("btn_cancel_Click");
-                Button button = (Button)sender;
-                int num = button.Parent.Controls.Count;
-                string key = null;
-                for (int i = 0; i < num; i++)
-                {
-                    if ("formkey".Equals(button.Parent.Controls[i].Name))
-                    {
-                        Label keylabel = (Label)button.Parent.Controls[i];
-                        key = keylabel.Text;
+        private void btn_cancel_Click(object sender, MouseEventArgs e) {
+        
+            try {
+            
+                SendFileForm form = (SendFileForm)ChatUtils.GetParentSendFileForm((Button)sender);
 
-                        if (FtpClientThreadList.ContainsKey(key) && FtpClientThreadList[key] != null)
-                        {
-                            try
-                            {
-                                ((FtpClientManager)FtpClientThreadList[key]).CancelSending();
-                            }
-                            catch (Exception te)
-                            {
-                                logWrite(te.ToString());
-                            }
-                        }
-                        
-                        if (FileSendThreadList.ContainsKey(key) && FileSendThreadList[key] != null)
-                        {
-                            try
-                            {
-                                ((Thread)FileSendThreadList[key]).Abort();
-                            }
-                            catch (ThreadAbortException te)
-                            {
-                                logWrite(te.ToString());
-                            }
-                        }
-                        if (FileSendFormList.ContainsKey(key) && FileSendFormList[key] != null)
-                        {
-                            FileSendFormList.Remove(key);
-                            logWrite("FileSendFormList.Remove(key) :" + key);
-                        }
-                        if (FileSendDetailList.ContainsKey(key) && FileSendDetailList[key] != null)
-                        {
-                            FileSendDetailListView view = (FileSendDetailListView)FileSendDetailList[key];
-                            view.Dispose();
-                            FileSendDetailList.Remove(key);
-                            logWrite("FileSendDetailList.Remove(key) :" + key);
-                        }
-                        break;
+                string key = form.formkey.Text;
+                logWrite("파일전송취소버튼 key:" + key);
+
+                if (FtpClientThreadList.ContainsKey(key) && FtpClientThreadList[key] != null) {
+                    try {
+                        ((FtpClientManager)FtpClientThreadList[key]).CancelSending();
+                    } catch (Exception te) {
+                        logWrite(te.ToString());
                     }
                 }
-                button.Parent.Dispose();
-            }
-            catch (Exception exception)
-            {
+
+                if (FileSendThreadList.ContainsKey(key) && FileSendThreadList[key] != null) {
+                    try {
+                        ((Thread)FileSendThreadList[key]).Abort();
+                    } catch (ThreadAbortException te) {
+                        logWrite(te.ToString());
+                    }
+                }
+
+                if (FileSendFormList.ContainsKey(key) && FileSendFormList[key] != null) {
+                    FileSendFormList.Remove(key);
+                    logWrite("FileSendFormList.Remove(key) :" + key);
+                }
+                
+                if (FileSendDetailList.ContainsKey(key) && FileSendDetailList[key] != null) {
+                    FileSendDetailListView view = (FileSendDetailListView)FileSendDetailList[key];
+                    view.Dispose();
+                    FileSendDetailList.Remove(key);
+                    logWrite("FileSendDetailList.Remove(key) :" + key);
+                }
+
+                form.Dispose();
+
+            } catch (Exception exception) {
+
                 logWrite(exception.ToString());
             }
         }
@@ -6542,69 +6410,72 @@ namespace Client
         {
             try
             {
-                Button button = (Button)sender;
-                int num = button.Parent.Controls.Count;
-                SendFileForm form = null;
-                string key = null;
+                //해당 폼 찾기
+                SendFileForm form = (SendFileForm)ChatUtils.GetParentSendFileForm((Button)sender);
+
+                string key = form.formkey.Text;
                 string filename = null;
 
-                //해당 폼 찾기
-                key = (button.Parent as SendFileForm).formkey.Text;
-                logWrite("btn_start_Click : formkey 값 얻어옴(" + key + ")");
-                if (FileSendFormList.ContainsKey(key) && FileSendFormList[key] != null)
-                {
+                logWrite("파일전송시작 : formkey 값 얻어옴(" + key + ")");
+                if (FileSendFormList.ContainsKey(key) && FileSendFormList[key] != null) {
+
                     form = (SendFileForm)FileSendFormList[key];
                     logWrite("key값에 대한 Form 찾음! ");
+                } else {
+                    logWrite("키값에 대한 SendFileForm 없음! key=" + key);
                 }
-                else logWrite("키값에 대한 SendFileForm 없음! key=" + key);
 
                 //전송파일 선택안한 경우
-                if (form.label_filename.Text.Length == 0)
-                {
+                if (form.label_filename.Text.Length == 0) {
+                
                     logWrite("btn_start_Click : 전송할 파일이 없음");
                     DialogResult result = MessageBox.Show(form, "전송할 파일을 선택해 주세요", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     bool FileSelected = false;
 
-                    if (result == DialogResult.OK)
-                    {
+                    if (result == DialogResult.OK) {
+                    
                         DialogResult fresult = openFileDialog.ShowDialog(form);
-                        if (fresult == DialogResult.OK)
-                        {
-                            if (openFileDialog.FileName.Length != 0)
-                            {
+                        if (fresult == DialogResult.OK) {
+                        
+                            if (openFileDialog.FileName.Length != 0) {
+                            
                                 filename = openFileDialog.FileName;
                                 FileSelected = true;
                             }
                         }
-                        if (FileSelected == true)
-                        {
+                        if (FileSelected == true) {
+                        
                             string[] filenameArray = filename.Split('\\');
-                            if (filenameArray.Length > 2)
-                            {
+                            if (filenameArray.Length > 2) {
+
                                 form.label_filename.Text = filenameArray[0] + "\\...\\" + filenameArray[(filenameArray.Length - 1)];
                                 form.label_filename.Tag = filename;
                                 logWrite(" btn_start_Click()  form.label_filename.Tag = " + form.label_filename.Tag.ToString());
+                            
+                            } else {
+                            
+                                form.label_filename.Text = filename;
+                            
                             }
-                            else form.label_filename.Text = filename;
 
                             ToolTip tip = new ToolTip();
                             tip.SetToolTip(form.label_filename, filename);
 
                             FileInfo fi = new FileInfo(filename);
                             int fsize = Convert.ToInt32(fi.Length / 1000);
-                            if (fsize.ToString().Length > 3)
-                            {
+
+                            if (fsize.ToString().Length > 3) {
                                 fsize = fsize / 1000;
                                 form.label_filesize.Text = fsize + " MB (" + fi.Length.ToString() + " byte)";
+                            } else {
+                                form.label_filesize.Text = fsize + " Kb (" + fi.Length.ToString() + " byte)";
                             }
-                            else form.label_filesize.Text = fsize + " Kb (" + fi.Length.ToString() + " byte)";
                         }
                     }
-                }
                     //수신자 선택안한 경우
-                else if (form.txtbox_FileReceiver.Text.Length == 0)
-                {
+                } else if (form.txtbox_FileReceiver.Text.Length == 0) {
+                
                     logWrite("btn_start_Click : 받는사람이 없음");
                     DialogResult result = MessageBox.Show(form, "파일을 받는 사람이 없습니다. 추가해 주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     if (result == DialogResult.OK)
@@ -6615,7 +6486,7 @@ namespace Client
                 else
                 {
                     logWrite("btn_start_Click : 전송할 파일과 받을사람 체크 완료");
-                    button.Visible = false;
+                    form.btn_start.Visible = false;
                     form.btn_cancel.Left += 40;
                     form.label_result.Text = "전송 대기중";
                     string tempname = null;
@@ -6631,18 +6502,11 @@ namespace Client
                     {
                         if (receiver.Length != 0)
                         {
-                            if (receiver.Equals("상담원전체"))
-                            {
-                                list.Add("all");
-                            }
-                            else
-                            {
-                                string[] receiverArg = receiver.Split('(');
-                                tempname = receiverArg[0];
-                                string[] receiverArg1 = receiverArg[1].Split(')');
-                                tempid = receiverArg1[0];
-                                list.Add(tempid);
-                            }
+                            string[] receiverArg = receiver.Split('(');
+                            tempname = receiverArg[0];
+                            string[] receiverArg1 = receiverArg[1].Split(')');
+                            tempid = receiverArg1[0];
+                            list.Add(tempid);
 
                             ListViewItem item = view.listView.Items.Add(tempid, receiver, null);
                             item.SubItems.Add("");
@@ -6755,27 +6619,22 @@ namespace Client
             try
             {
                 Hashtable list = new Hashtable();
-                if (memTree.SelectedNode.GetNodeCount(false) != 0)
-                {
-                    if (memTree.SelectedNode.Level == 0)
-                    {
-                        DialogResult result = MessageBox.Show(this, "사용자 모두에게 파일을 보내시겠습니까?", "알림", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                        if (result == DialogResult.Yes)
-                        {
-                            list["all"] = "all";
-                        }
-                    }
-                    else
-                    {
-                        TreeNodeCollection collection = memTree.SelectedNode.Nodes;
-                        foreach (TreeNode node in collection)
-                        {
-                            UserObject userObj = (UserObject)node.Tag;
-                            list[userObj.Id] = userObj.Name;
-                        }
+                int sendable = 0;
+
+                foreach (TreeNode node in memTree.SelectedNode.Nodes) {
+                    
+                    UserObject userObj = (UserObject)node.Tag;
+                    if (userObj.Status != MsgrUserStatus.LOGOUT) {
+                        list[userObj.Id] = userObj.Name;
+                        sendable++;
                     }
                 }
-                MakeSendFileForm(list);
+
+                if (sendable > 0) {
+                    MakeSendFileForm(list);
+                } else {
+                    MessageBox.Show(this, "파일을 전송할 수 없습니다. 파일을 받을 사람이 로그인상태가 아닙니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             catch (Exception exception)
             {
@@ -7493,11 +7352,8 @@ namespace Client
             try {
                 
                 Hashtable MemoReceiver = new Hashtable();
-
                 UserObject userObj = (UserObject)memTree.SelectedNode.Tag;
-
                 MemoReceiver[userObj.Id] = userObj.Name;
-
                 MakeSendMemo(MemoReceiver);
 
             } catch (Exception exception) {
@@ -7530,21 +7386,15 @@ namespace Client
             try {
                 if (memTree.SelectedNode.GetNodeCount(false) != 0)  {
                     
-                    if (memTree.SelectedNode.Level == 0) {
-                    } else {
-                        Hashtable MemoReceiver = new Hashtable();
-                        TreeNodeCollection collection = memTree.SelectedNode.Nodes;
+                    Hashtable MemoReceiver = new Hashtable();
+
+                    foreach (TreeNode node in memTree.SelectedNode.Nodes) {
                         
-                        foreach (TreeNode node in collection) {
-                            
-                            string[] nameArg = null;
-
-                            UserObject userObj = (UserObject)node.Tag;
-                            MemoReceiver[userObj.Name] = userObj.Id;
-                        }
-
-                        MakeSendMemo(MemoReceiver);
+                        UserObject userObj = (UserObject)node.Tag;
+                        MemoReceiver[userObj.Id] = userObj.Name;
                     }
+
+                    MakeSendMemo(MemoReceiver);
                 }
             } catch (Exception exception) {
                 logWrite(exception.ToString());
@@ -9152,5 +9002,6 @@ namespace Client
         {
             //getForegroundWindow();
         }
+
     }
 }
