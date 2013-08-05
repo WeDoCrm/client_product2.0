@@ -124,6 +124,8 @@ namespace Client
 
 
                         UserObject userObj = ChatUtils.FindUserObjectTagFromTreeNodes(collection, userId);
+                        if (userObj == null || userObj.Id == "")
+                            continue;
 
                         ListBoxItem item = new ListBoxItem(userObj);
                         
@@ -139,6 +141,8 @@ namespace Client
                     
                     if (de.Value != null)  {
                         UserObject userObj = ChatUtils.FindUserObjectTagFromTreeNodes(collection, de.Key.ToString());
+                        if (userObj == null || userObj.Id == "")
+                            continue;
 
                         ListBoxItem item = new ListBoxItem(userObj);
                         if (ListBox.NoMatches == AddListBox.FindStringExact(item.Text)) {
