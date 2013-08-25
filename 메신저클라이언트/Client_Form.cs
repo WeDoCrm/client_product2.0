@@ -32,8 +32,7 @@ namespace Client
         [DllImport("user32.dll")]
         public static extern Int32 GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-        //초기 설정 관련 demo vs. product
-        private bool IsProductMode = false;
+        //초기 설정 관련
         private string AppName = "";
         private string AppConfigName = "";
         private string AppRegName = "";
@@ -41,11 +40,6 @@ namespace Client
         private string XmlConfigFullPath = "";
         private string XmlConfigOrgFullPath = "";
 
-        private string UpdateSourceFullPath = "";
-        private string UpdateTargetFullPath = "";
-        private string UpdateSourceDir = "";
-        private string UpdateTargetDir = "";
-        private string UpdateShortDir = "";
         private string MsgrTitle = "";
 
         private string[] news = new string[10];
@@ -66,13 +60,7 @@ namespace Client
         private string MadeNoticeDetail = null;
         private string extension = null;
         private string com_cd = null;
-        private string FtpHost = null;
-        private string FtpUsername = null;
-        private string passwd = null;
         private string version = null;
-        private string updaterDir = null;
-        private string tempFolder = null;
-        private int FtpPort = 0;
         private string custom_font = null;
         private string custom_color = null;
         private string top = null;
@@ -272,8 +260,6 @@ namespace Client
 
             readconfig();
             LogFileCheck();
-            Thread thread = new Thread(new ThreadStart(VersionCheck));
-            thread.Start();
             logWrite("LogFileCheck() 완료" + DateTime.Now.ToString());
             setLoginInfo();
             Microsoft.Win32.SystemEvents.SessionEnding += new Microsoft.Win32.SessionEndingEventHandler(SystemEvents_SessionEnding);
@@ -286,6 +272,9 @@ namespace Client
             
         }
 
+        /// <summary>
+        /// 각 경로 지정
+        /// </summary>
         private void checkProductMode()
         {
             string temp = Process.GetCurrentProcess().ProcessName;
@@ -298,39 +287,14 @@ namespace Client
                 AppName = temp.Substring(0, temp.IndexOf('.'));
             }
 
-            IsProductMode = !(AppName.ToUpper().Contains(CommonDef.STR_DEMO));
-
             AppConfigName = string.Format(CommonDef.APP_CONFIG_NAME, temp);
             AppConfigFullPath = Application.StartupPath + CommonDef.PATH_DELIM + AppConfigName;
-            if (IsProductMode)
-            {
-                AppRegName = CommonDef.REG_APP_NAME;
-                UpdateShortDir = CommonDef.UPDATE_DIR_PROD;
-                UpdateTargetDir = CommonDef.WORK_DIR + CommonDef.PATH_DELIM + CommonDef.UPDATE_DIR_PROD;
-                UpdateSourceDir = Application.StartupPath + CommonDef.PATH_DELIM +CommonDef.UPDATE_DIR_PROD;
-                XmlConfigFullPath = CommonDef.WORK_DIR + CommonDef.PATH_DELIM + CommonDef.CONFIG_DIR + CommonDef.PATH_DELIM + CommonDef.XML_CONFIG_PROD;
-                XmlConfigOrgFullPath = Application.StartupPath + CommonDef.PATH_DELIM + CommonDef.XML_CONFIG_PROD;
-                UpdateSourceFullPath = UpdateSourceDir + CommonDef.PATH_DELIM + CommonDef.UPDATE_EXE;
-                UpdateTargetFullPath = UpdateTargetDir + CommonDef.PATH_DELIM + CommonDef.UPDATE_EXE;
-                MsgrTitle = CommonDef.MSGR_TITLE_PROD;
-                FtpHost = CommonDef.FTP_HOST_PROD; 
-                version = CommonDef.FTP_VERSION_PROD;
-            }
-            else
-            {
-                AppRegName = CommonDef.REG_APP_NAME_DEMO;
-                UpdateShortDir = CommonDef.UPDATE_DIR_DEMO;
-                UpdateTargetDir = CommonDef.WORK_DIR + CommonDef.PATH_DELIM + CommonDef.UPDATE_DIR_DEMO;
-                UpdateSourceDir = Application.StartupPath + CommonDef.PATH_DELIM + CommonDef.UPDATE_DIR_DEMO;
-                XmlConfigFullPath = CommonDef.WORK_DIR + CommonDef.PATH_DELIM + CommonDef.CONFIG_DIR + CommonDef.PATH_DELIM + CommonDef.XML_CONFIG_DEMO;
-                XmlConfigOrgFullPath = Application.StartupPath + CommonDef.PATH_DELIM + CommonDef.XML_CONFIG_DEMO;
-                UpdateSourceFullPath = UpdateSourceDir + CommonDef.PATH_DELIM + CommonDef.UPDATE_EXE;
-                UpdateTargetFullPath = UpdateTargetDir + CommonDef.PATH_DELIM + CommonDef.UPDATE_EXE;
-                MsgrTitle = CommonDef.MSGR_TITLE_DEMO;
-                FtpHost = CommonDef.FTP_HOST_DEMO;
-                version = CommonDef.FTP_VERSION_DEMO;
-            }
-            logWrite("Product Mode[" + AppName + "][" + IsProductMode + "]");
+
+            AppRegName = CommonDef.REG_APP_NAME;
+            XmlConfigFullPath = CommonDef.WORK_DIR + CommonDef.PATH_DELIM + CommonDef.CONFIG_DIR + CommonDef.PATH_DELIM + CommonDef.XML_CONFIG_PROD;
+            XmlConfigOrgFullPath = Application.StartupPath + CommonDef.PATH_DELIM + CommonDef.XML_CONFIG_PROD;
+            MsgrTitle = CommonDef.MSGR_TITLE_PROD;
+            version = CommonDef.APP_VERSION;
 
         }
 
@@ -361,22 +325,9 @@ namespace Client
         {
             try
             {
-                //FtpHost = System.Configuration.ConfigurationSettings.AppSettings["FtpHost"].ToString();
-                //tempFolder = System.Configuration.ConfigurationSettings.AppSettings["FtpLocalFolder"].ToString();
-                //passwd = System.Configuration.ConfigurationSettings.AppSettings["FtpPass"].ToString();
-                //FtpPort = int.Parse(System.Configuration.ConfigurationSettings.AppSettings["FtpPort"].ToString());
-                //FtpUsername = System.Configuration.ConfigurationSettings.AppSettings["FtpUserName"].ToString();
-                //updaterDir = System.Configuration.ConfigurationSettings.AppSettings["UpdaterDir"].ToString();
-                //version = System.Configuration.ConfigurationSettings.AppSettings["FtpVersion"].ToString();
                 top = System.Configuration.ConfigurationSettings.AppSettings["topmost"].ToString();
                 string sNopop = System.Configuration.ConfigurationSettings.AppSettings["nopop"].ToString();
 
-                tempFolder = CommonDef.FTP_LOCAL_DIR;
-                passwd = CommonDef.FTP_PASS;
-                FtpPort = CommonDef.FTP_PORT;
-                FtpUsername = CommonDef.FTP_USERID;
-                updaterDir = UpdateTargetFullPath; //System.Configuration.ConfigurationSettings.AppSettings["UpdaterDir"].ToString();
-                
                 if (sNopop.Equals("1"))
                 {
                     this.nopop = true;
@@ -399,95 +350,6 @@ namespace Client
             }
         }
 
-        private void VersionCheck()
-        {
-            bool isUpdate = false;
-            try
-            {
-
-                Uri ftpuri = new Uri(FtpHost);
-                FtpWebRequest wr = (FtpWebRequest)WebRequest.Create(ftpuri);
-                wr.Method = WebRequestMethods.Ftp.ListDirectory;
-                wr.Credentials = new NetworkCredential(FtpUsername, passwd);
-                FtpWebResponse wres = (FtpWebResponse)wr.GetResponse();
-                Stream st = wres.GetResponseStream();
-                string SVRver = null;
-
-                if (st.CanRead)
-                {
-                    StreamReader sr = new StreamReader(st);
-                    SVRver = sr.ReadLine();
-                }
-                logWrite("VersionCheck FtpHost = " + FtpHost);
-                logWrite("Server Version = " + SVRver);
-                logWrite("Client Version = " + version);
-
-                if (SVRver.Equals(version.Trim()))
-                {
-                    version = SVRver;
-
-                    logWrite("Last Version is already Installed!");
-                }
-                else
-                {
-                    string[] ver = SVRver.Split('.');
-                    string[] now = version.Split('.');
-                    for (int v = 0; v < ver.Length; v++)
-                    {
-                        if (!ver[v].Equals(now[v]))
-                        {
-                            if (Convert.ToInt32(ver[v]) > Convert.ToInt32(now[v]))
-                            {
-                                NoParamDele dele = new NoParamDele(requestUpdate);
-                                Invoke(dele);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logWrite(ex.ToString());
-            }
-            //return isUpdate;
-        }
-
-        private void requestUpdate()
-        {
-            request = new RequestUpdate();
-            request.btn_no.MouseClick += new MouseEventHandler(btn_no_MouseClick);
-            request.btn_yes.MouseClick += new MouseEventHandler(btn_yes_MouseClick);
-            request.Show();
-        }
-
-        private void btn_yes_MouseClick(object sender, MouseEventArgs e)
-        {
-            try
-            {
-                if (connected == true)
-                {
-                    LogOut();
-                }
-                this.notifyIcon.Visible = false;
-                logWrite("Update Start!!" + "  " + DateTime.Now.ToShortTimeString());
-                System.Diagnostics.Process.Start(updaterDir);
-                logWrite("FtpHost : " + FtpHost);
-                Process.GetCurrentProcess().Kill();
-            }
-            catch (Exception ex)
-            {
-                logWrite(ex.ToString());
-            }
-        }
-
-        private void btn_no_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (request != null)
-            {
-                request.Close();
-            }
-        }
 
         private void setLoginInfo()
         {
@@ -495,6 +357,7 @@ namespace Client
             {
                 id.Text = System.Configuration.ConfigurationSettings.AppSettings["id"];
                 extension = System.Configuration.ConfigurationSettings.AppSettings["extension"];
+
                 custom_font = System.Configuration.ConfigurationSettings.AppSettings["custom_font"];
                 custom_color = System.Configuration.ConfigurationSettings.AppSettings["custom_color"];
 
@@ -2028,23 +1891,18 @@ namespace Client
                         stringDele changeProgressStyle = new stringDele(chageProgressbar);
                         Invoke(changeProgressStyle, "로딩중");
 
-                        setCRM_DB_HOST(XmlConfigOrgFullPath, serverIP);//Application.StartupPath + "\\MiniCTI_config_demo.xml", serverIP);
-                        setCRM_DB_HOST(XmlConfigFullPath, serverIP);//"c:\\MiniCTI\\config\\MiniCTI_config_demo.xml", serverIP);
-
-                        FileInfo temp = new FileInfo(XmlConfigOrgFullPath);//Application.StartupPath + "\\MiniCTI_config_demo.xml");
-
+                        //MiniCTI config 파일 설정
                         FileInfo tempfileinfo = new FileInfo(XmlConfigFullPath);//"C:\\MiniCTI\\config\\MiniCTI_config_demo.xml");
                         if (!tempfileinfo.Exists)
                         {
                             logWrite("MiniCTI config 파일 없음");
-                            FileInfo file_copied = temp.CopyTo(tempfileinfo.FullName);
+                            FileInfo temp = new FileInfo(XmlConfigOrgFullPath);//Application.StartupPath + "\\MiniCTI_config_demo.xml");
+                            temp.CopyTo(tempfileinfo.FullName);
                         }
-                        else
-                        {
-                            FileInfo file_copied = temp.CopyTo(tempfileinfo.FullName, true);
-                        }
-                        
-                        myname = tempMsg[1];//서버측에서 전달된 이름 저장
+                        setCRM_DB_HOST(XmlConfigFullPath, serverIP);//"c:\\MiniCTI\\config\\MiniCTI_config_demo.xml", serverIP);
+
+                        //서버측에서 전달된 이름 저장
+                        myname = tempMsg[1];
                         myid = this.id.Text;
                         com_cd = tempMsg[4];
                         logWrite("로그인 성공! (" + DateTime.Now.ToString() + ")");
@@ -2062,8 +1920,7 @@ namespace Client
                             Invoke(FlushTeam, tempMsg[3]);
                         }
 
-                       
-
+                        //화면의 모든 콘트롤에 keydown이벤트설정
                         this.KeyDown += new KeyEventHandler(Client_Form_KeyDown);
                         int count = this.Controls.Count;
 
@@ -5131,7 +4988,7 @@ namespace Client
                 TextBox box = (TextBox)sender;
                 Color txtcolor = box.ForeColor;
                 Font  txtfont = box.Font;
-                logWrite("사용자 폰트/색상 변경 : " + txtcolor.Name + "/" + txtfont.Name);
+                logWrite("사용자 폰트/색상 변경 : " + txtcolor.Name + "/" + txtfont.ToString());
                 saveFontColor(txtcolor, txtfont);
             }
             catch (Exception ex)
@@ -5143,10 +5000,11 @@ namespace Client
         private void saveFontColor(Color color, Font font)
         {
             try {
-                string c_color = color.Name;
-                string c_font = font.ToHfont().ToInt32().ToString();
-                setConfigXml(AppConfigFullPath, "custom_color", c_color);
-                setConfigXml(AppConfigFullPath, "custom_font", c_font);
+                string _color = color.Name;
+                TypeConverter fontConverter = TypeDescriptor.GetConverter(typeof(Font));
+                string _font = fontConverter.ConvertToString(font);
+                setConfigXml(AppConfigFullPath, "custom_color", _color);
+                setConfigXml(AppConfigFullPath, "custom_font", _font);
             } catch (Exception ex) {
                 logWrite("saveFontColor Error : " + ex.ToString());
             }
@@ -6808,6 +6666,12 @@ namespace Client
             }
         }
 
+        /// <summary>
+        /// 로깅에 필요한 경로 생성
+        /// 1. ./log, ./config 경로 생성
+        /// 2. minicti config file 없을경우 백업본 복사
+        /// 4. log file cleansing필요
+        /// </summary>
         public void LogFileCheck()
         {
             try
@@ -6829,49 +6693,13 @@ namespace Client
                     configDir.Create();
                 }
 
-                DirectoryInfo updaterDir = new DirectoryInfo(di.FullName + CommonDef.PATH_DELIM + UpdateShortDir);
-                if (!updaterDir.Exists)
-                {
-                    updaterDir.Create();
-                }
-
-                FileInfo[] files = null;
-                di = new DirectoryInfo(UpdateSourceDir);//Application.StartupPath + "\\WeDoUpdater_Demo");
-                if (di.Exists)
-                {
-                    files = di.GetFiles();
-                    foreach (FileInfo fi in files)
-                    {
-                        FileInfo finfo = new FileInfo(UpdateTargetDir + CommonDef.PATH_DELIM + fi.Name);//"C:\\MiniCTI\\WeDoUpdater_Demo\\" + fi.Name);
-
-                        fi.CopyTo(finfo.FullName, true);
-
-                    }
-                }
-                else
-                {
-                    logWrite("WeDoUpdater.Exists = false");
-                }
-
-                date = date.Trim();
-                FileInfo tempfileinfo = new FileInfo(@"C:\MiniCTI\log\" + date + ".txt");
-
-                if (!tempfileinfo.Exists)
-                {
-                    tempfileinfo.Create();
-                    logWrite(date + ".txt 파일 생성");
-                }
-
-                FileInfo temp = new FileInfo(XmlConfigOrgFullPath);//Application.StartupPath + "\\MiniCTI_config_demo.xml");
-
                 FileInfo CRMCFGfileinfo = new FileInfo(XmlConfigFullPath);//"C:\\MiniCTI\\config\\MiniCTI_config_demo.xml");
                 if (!CRMCFGfileinfo.Exists)
                 {
                     logWrite("MiniCTI config 파일 없음");
-                    FileInfo file_copied = temp.CopyTo(CRMCFGfileinfo.FullName);
+                    FileInfo temp = new FileInfo(XmlConfigOrgFullPath);//Application.StartupPath + "\\MiniCTI_config_demo.xml");
+                    temp.CopyTo(CRMCFGfileinfo.FullName);
                 }
-
-                
             }
             catch (Exception e)
             {
@@ -6880,7 +6708,9 @@ namespace Client
             }
         }
 
-
+        /// <summary>
+        /// 개인폴더 생성
+        /// </summary>
         private void FileDirCheck()
         {
             try

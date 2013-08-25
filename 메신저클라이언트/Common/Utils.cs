@@ -6,6 +6,7 @@ using CRMmanager;
 using System.Collections;
 using System.Drawing;
 using Client.Common;
+using System.ComponentModel;
 
 namespace Client
 {
@@ -363,9 +364,9 @@ namespace Client
             {
                 if (customFont != null && customFont.Length > 0)
                 {
+                    TypeConverter fontConverter = TypeDescriptor.GetConverter(typeof(Font));
                     MsgrLogger.WriteLog("customFont = " + customFont);
-                    IntPtr ptr = new IntPtr(Convert.ToInt32(customFont));
-                    f = System.Drawing.Font.FromHfont(ptr);
+                    f = (Font)fontConverter.ConvertFromString(customFont);
                 }
             }
             catch (Exception ex)
